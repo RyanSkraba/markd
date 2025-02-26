@@ -7,8 +7,39 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Markd</name>
+  <name>${project.groupId}:${project.artifactId}</name>
   <description>A scala library for parsing and cleaning Markdown</description>
+  <url>http://github.com/RyanSkraba/markd</url>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Ryan Skraba</name>
+      <email>ryan@skraba.com</email>
+      <organization>ryan@skraba.com</organization>
+      <organizationUrl>https://skraba.com</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/RyanSkraba/markd.git</connection>
+    <developerConnection>scm:git:ssh://github.com:RyanSkraba/markd.git</developerConnection>
+    <url>http://github.com/RyanSkraba/markd/</url>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <properties>
     <!-- From this file to the root directory of the repo. -->
@@ -35,8 +66,10 @@
     <plugin.enforcer.maven.version>3.4.1</plugin.enforcer.maven.version>
     <plugin.enforcer.required.maven.version>3.5.0</plugin.enforcer.required.maven.version>
     <plugin.failsafe.maven.version>3.2.5</plugin.failsafe.maven.version>
+    <plugin.gpg.maven.version>1.5</plugin.gpg.maven.version>
     <plugin.install.maven.version>3.1.1</plugin.install.maven.version>
     <plugin.jar.maven.version>3.3.0</plugin.jar.maven.version>
+    <plugin.javadoc.maven.version>2.9.1</plugin.javadoc.maven.version>
     <plugin.maven.docker.version>0.45.1</plugin.maven.docker.version>
     <plugin.maven.scala.version>4.9.2</plugin.maven.scala.version>
     <plugin.maven.scalatest.version>2.2.0</plugin.maven.scalatest.version>
@@ -45,6 +78,7 @@
     <plugin.resources.maven.version>3.3.1</plugin.resources.maven.version>
     <plugin.shade.maven.version>3.5.1</plugin.shade.maven.version>
     <plugin.site.maven.version>4.0.0-M14</plugin.site.maven.version>
+    <plugin.source.maven.version>4.0.0-M14</plugin.source.maven.version>
     <plugin.maven.spotless.version>2.43.0</plugin.maven.spotless.version>
     <plugin.surefire.maven.version>3.2.5</plugin.surefire.maven.version>
     <plugin.war.maven.version>3.4.0</plugin.war.maven.version>
@@ -75,6 +109,7 @@
   <build>
     <pluginManagement>
       <plugins>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
@@ -121,8 +156,43 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>${plugin.gpg.maven.version}</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+              <phase>verify</phase>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
           <version>${plugin.install.maven.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${plugin.javadoc.maven.version}</version>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${plugin.jar.maven.version}</version>
         </plugin>
 
         <plugin>
@@ -150,6 +220,20 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>${plugin.site.maven.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${plugin.source.maven.version}</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
 
         <!-- Launch scalatests as well as Java -->
