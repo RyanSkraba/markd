@@ -32,7 +32,7 @@
 
   <properties>
     <!-- From this file to the root directory of the repo. -->
-    <byexample.relBaseDir>.</byexample.relBaseDir>
+    <project.relBaseDir>.</project.relBaseDir>
 
     <!-- specifies that the system uses Java 11 by default -->
     <maven.compiler.source>11</maven.compiler.source>
@@ -263,7 +263,7 @@
                 <include>src/test/scala/**/*.scala</include>
               </includes>
               <scalafmt>
-                <file>${project.basedir}/${byexample.relBaseDir}/.scalafmt.conf</file>
+                <file>${project.basedir}/${project.relBaseDir}/.scalafmt.conf</file>
                 <version>${scalafmt.version}</version>
               </scalafmt>
             </scala>
@@ -308,9 +308,6 @@
         <artifactId>scalatest-maven-plugin</artifactId>
       </plugin>
     </plugins>
-
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
   </build>
 
   <profiles>
