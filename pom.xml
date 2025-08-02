@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.tinfoiled</groupId>
-  <artifactId>markd_${scala.binary.version}</artifactId>
+  <artifactId>markd-parent</artifactId>
   <version>0.0.2-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A scala library for parsing and cleaning Markdown</description>
@@ -24,6 +24,11 @@
       <organizationUrl>https://skraba.com</organizationUrl>
     </developer>
   </developers>
+
+  <modules>
+    <module>markd</module>
+  </modules>
+
   <scm>
     <connection>scm:git:git://github.com/RyanSkraba/markd.git</connection>
     <developerConnection>scm:git:ssh://github.com:RyanSkraba/markd.git</developerConnection>
@@ -62,36 +67,46 @@
     <plugin.maven.docker.version>0.45.1</plugin.maven.docker.version>
     <plugin.maven.publishing.central.version>0.8.0</plugin.maven.publishing.central.version>
     <plugin.maven.scala.version>4.9.5</plugin.maven.scala.version>
-    <plugin.maven.scalatest.version>2.2.0</plugin.maven.scalatest.version>
     <plugin.maven.scalatest.exclude>org.scalatest.tags.Slow</plugin.maven.scalatest.exclude>
+    <plugin.maven.scalatest.version>2.2.0</plugin.maven.scalatest.version>
     <plugin.maven.spotless.version>2.46.1</plugin.maven.spotless.version>
     <plugin.report.surefire.maven.version>3.5.0</plugin.report.surefire.maven.version>
     <plugin.resources.maven.version>3.3.1</plugin.resources.maven.version>
-    <plugin.shade.maven.version>3.5.1</plugin.shade.maven.version>
-    <plugin.site.maven.version>4.0.0-M14</plugin.site.maven.version>
+    <plugin.shade.maven.version>3.6.0</plugin.shade.maven.version>
+    <plugin.site.maven.version>4.0.0-M16</plugin.site.maven.version>
     <plugin.source.maven.version>3.3.1</plugin.source.maven.version>
     <plugin.surefire.maven.version>3.2.5</plugin.surefire.maven.version>
     <plugin.war.maven.version>3.4.0</plugin.war.maven.version>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-library</artifactId>
+        <version>${scala.version}</version>
+      </dependency>
+
+      <!-- Necessary for prettifying JSON code blocks -->
+      <dependency>
+        <groupId>com.typesafe.play</groupId>
+        <artifactId>play-json_${scala.binary.version}</artifactId>
+        <version>${play-json.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest_${scala.binary.version}</artifactId>
+        <version>${scalatest.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-
-    <!-- Necessary for prettifying JSON code blocks -->
-    <dependency>
-      <groupId>com.typesafe.play</groupId>
-      <artifactId>play-json_${scala.binary.version}</artifactId>
-      <version>${play-json.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.binary.version}</artifactId>
-      <version>${scalatest.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
