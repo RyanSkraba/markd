@@ -100,7 +100,7 @@ package object markd {
     */
   case class Code(code_type: String, content: String) extends Markd {
 
-    lazy val builtContent: String = (code_type, content) match {
+    private lazy val builtContent: String = (code_type, content) match {
       case ("json", json) =>
         Try(Json.prettyPrint(Json.parse(json)) + "\n").getOrElse(json)
       case ("jsonline" | "jsonlines" | "json line" | "json lines", jsonline) =>
@@ -152,7 +152,7 @@ package object markd {
   object LinkRef {
 
     /** Regex used to find link references. */
-    val LinkRegex: Regex =
+    private val LinkRegex: Regex =
       raw"""(?x)
           ^
           \[(?<ref>[^]]+)]:
@@ -176,9 +176,9 @@ package object markd {
         )
       )
 
-    def escape(in: String): String = in.replace("\\", "\\\\").replace("\"", "\\\"")
+    private def escape(in: String): String = in.replace("\\", "\\\\").replace("\"", "\\\"")
 
-    def unescape(in: String): String = in.replace("\\\\", "\\").replace("\\\"", "\"")
+    private def unescape(in: String): String = in.replace("\\\\", "\\").replace("\\\"", "\"")
   }
 
   /** An element that can contain other elements. */
@@ -414,42 +414,32 @@ package object markd {
       raw"""(?x)(?s)
             ( <!--(.*?)-->                                     # Comment
             | (?<=(^|\n))```([^\n]*?)\s*\n(.*?)```\s*(\n|$$)   # Code
-            | (?<=(^|\n))(\[[^\]]+\]:[^\n]*)                   # LinkRef
-            | .*?(?=$$|<!--|```|\n\[[^\]]+\]:|\n\s*\n)         # All other text
+            | (?<=(^|\n))(\[[^]]+]:[^\n]*)                   # LinkRef
+            | .*?(?=$$|<!--|```|\n\[[^]]+]:|\n\s*\n)         # All other text
             )
          """.r
 
     /** Regex used to split header section. */
-    val HeaderRegex: Regex =
+    private val HeaderRegex: Regex =
       raw"""(?x)
           (?=(^|\n)                           # Lookahead
             (
-              (?<titleml>[^\n]+)\n            # Multiline header
-              (===+|---+)
+              (?<mlTitle>[^\n]+)\n            # Multiline header
+              (?<mlLevel>===+|---+)
             |
-              (\#{1,9})\s+(?<titlesl>[^\n]+)  # or single line header
+              (?<slLevel>\#{1,9})\s+(?<slTitle>[^\n]+)  # or single line header
             )
             (\n|$$))
-         """.r(
-        "",
-        "",
-        "title_ml",
-        "level_ml",
-        "level_sl",
-        "title_sl"
-      )
+         """.r
 
     def apply(level: Int, title: String, sub: Markd*): Header = Header(title, level, sub)
 
     /** Extract the level and title from a matching header. */
     private[this] def extractHeader(m: Regex.Match): Header = {
-      if (Option(m.group("title_ml")).isDefined)
-        Header(
-          if (m.group("level_ml").startsWith("=")) 1 else 2,
-          m.group("title_ml")
-        )
+      if (Option(m.group("mlTitle")).isDefined)
+        Header(if (m.group("mlLevel").startsWith("=")) 1 else 2, m.group("mlTitle"))
       else
-        Header(m.group("level_sl").length, m.group("title_sl"))
+        Header(m.group("slLevel").length, m.group("slTitle"))
     }
 
     /** Splits the content into sections, as a tree of headers. */
@@ -717,9 +707,9 @@ package object markd {
 
     /** Split into cells by |, taking into account escaped pipes but not other constructions.
       */
-    val CellRegex: Regex = raw"(?<!\\)\|".r
+    private val CellRegex: Regex = raw"(?<!\\)\|".r
 
-    val AlignmentCellRegex: Regex = raw"^\s*(:-+:|---+|:--+|-+-:)\s*$$".r
+    private val AlignmentCellRegex: Regex = raw"^\s*(:-+:|---+|:--+|-+-:)\s*$$".r
 
     /** Shortcut method just for the varargs */
     def from(aligns: Seq[Align], mds: TableRow*): Table = Table(aligns, mds)
@@ -728,10 +718,10 @@ package object markd {
       * @param content
       *   The string contents to parse.
       * @return
-      *   An [[Option]] containing a [[Table]] if it is possible to construct, or None if it isn't.
+      *   An {{Option}} containing a [[Table]] if it is possible to construct, or None if it isn't.
       */
     def parse(content: String): Option[Table] = {
-      val prelines = content.split("\n").map(parseRow)
+      val prelines = content.split("\n").toSeq.map(parseRow)
       // If there aren't at least two lines, this isn't a Table.
       if (prelines.length < 2) return None
 
@@ -761,7 +751,7 @@ package object markd {
     /** Parses a string into cells, removing all trailing whitespace-only cells.
       */
     def parseRow(content: String): Seq[String] = {
-      val values = CellRegex.pattern.split(content, -1)
+      val values = CellRegex.pattern.split(content, -1).toSeq
       if (values.last.nonEmpty) values
       else {
         val lastNonEmpty = values.lastIndexWhere(!_.isBlank)
@@ -829,7 +819,7 @@ package object markd {
     /** If sorting, provides a key to use from the linkref, allowing custom grouping and deduplication of the links. The
       * linkref will be sorted and deduplicated based on this key. By default, the [[LinkRef.ref]] is used directly.
       */
-    def linkSorter(): PartialFunction[LinkRef, (String, LinkRef)] = { case lr => lr.ref -> lr }
+    private def linkSorter(): PartialFunction[LinkRef, (String, LinkRef)] = { case lr => lr.ref -> lr }
 
     /** Clean up the references at the end of a section. */
     def linkCleaner(links: Seq[LinkRef]): Seq[LinkRef] = if (sortLinkRefs) {
