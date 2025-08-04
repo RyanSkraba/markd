@@ -1,0 +1,172 @@
+package com.tinfoiled.markd
+
+import scala.util.matching.Regex
+
+/** Markdown header or section.
+  *
+  * {{{
+  * # Header 1
+  *
+  * Header 2
+  * --------
+  *
+  * ### Header 3
+  * }}}
+  *
+  * @param level
+  *   The level (from 1 to 9). A level of 0 can be used to represent an entire document.
+  * @param title
+  *   The title of the section
+  * @param mds
+  *   The internal subsections and parsed [[Markd]] elements.
+  */
+case class Header(title: String, level: Int, mds: Seq[Markd]) extends MultiMarkd[Markd] {
+
+  type Self = Header
+
+  override def copyMds(newMds: Seq[Markd]): Self = copy(mds = newMds)
+
+  /** Helper method to simplify prepending a sublevel header at the top of this section. A new subsection that is one
+    * level below this one will be added, after the content of this section but before any subsections. Appending is
+    * much simpler via copyMds.
+    *
+    * @param innerTitle
+    *   The title of the subsection to prepend
+    * @param innerMds
+    *   The contents of the subsection.
+    * @return
+    *   This header with the new subsection prepended to it.
+    */
+  def prepend(innerTitle: String, innerMds: Markd*): Header = {
+    val toPrepend = Header(innerTitle, level + 1, innerMds)
+    flatMapFirstIn(ifNotFound = mds :+ toPrepend, replace = true) {
+      case h @ Header(_, lvl, _) if lvl == toPrepend.level && toPrepend != h => Seq(toPrepend, h)
+      case h @ Header(_, lvl, _) if lvl == toPrepend.level                   => Seq(h)
+    }
+  }
+
+  override def build(sb: StringBuilder = new StringBuilder(), cfg: FormatCfg = FormatCfg.Default): StringBuilder = {
+    level match {
+      case 0 => // No title section for a document.
+      case 1 => sb ++= title ++= "\n" ++= "=" * 78 ++= "\n"
+      case 2 => sb ++= title ++= "\n" ++= "-" * 78 ++= "\n"
+      case _ => sb ++= "#" * level ++= " " ++= title ++= "\n"
+    }
+    buildSub(sb, if (level == 0) None else Some(this), cfg)
+  }
+}
+
+object Header {
+
+  /** Splits text into strings ready to be placed into [[Comment]], [[Code]], [[LinkRef]] and [[Paragraph]] instances.
+    */
+  private[this] val Pass1Regex: Regex =
+    raw"""(?x)(?s)
+            ( <!--(.*?)-->                                     # Comment
+            | (?<=(^|\n))```([^\n]*?)\s*\n(.*?)```\s*(\n|$$)   # Code
+            | (?<=(^|\n))(\[[^]]+]:[^\n]*)                   # LinkRef
+            | .*?(?=$$|<!--|```|\n\[[^]]+]:|\n\s*\n)         # All other text
+            )
+         """.r
+
+  /** Regex used to split header section. */
+  private val HeaderRegex: Regex =
+    raw"""(?x)
+          (?=(^|\n)                           # Lookahead
+            (
+              (?<mlTitle>[^\n]+)\n            # Multiline header
+              (?<mlLevel>===+|---+)
+            |
+              (?<slLevel>\#{1,9})\s+(?<slTitle>[^\n]+)  # or single line header
+            )
+            (\n|$$))
+         """.r
+
+  def apply(level: Int, title: String, sub: Markd*): Header = Header(title, level, sub)
+
+  /** Extract the level and title from a matching header. */
+  private[this] def extractHeader(m: Regex.Match): Header = {
+    if (Option(m.group("mlTitle")).isDefined)
+      Header(if (m.group("mlLevel").startsWith("=")) 1 else 2, m.group("mlTitle"))
+    else
+      Header(m.group("slLevel").length, m.group("slTitle"))
+  }
+
+  /** Splits the content into sections, as a tree of headers. */
+  def parse(content: String, cfg: ParserCfg = new ParserCfg()): Header = {
+    // The first pass splits everything into code, comments, links and paragraphs
+    val pass1: Iterator[Markd] = Pass1Regex
+      .findAllMatchIn(content)
+      .flatMap {
+        case Pass1Regex(_, _, _, code_type, code, _*) if code != null        => Option(Code(code_type, code))
+        case Pass1Regex(_, comment, _*) if comment != null                   => Option(Comment(comment))
+        case Pass1Regex(_, _, _, _, _, _, _, linkRef, _*) if linkRef != null => LinkRef.parse(linkRef)
+        case Pass1Regex(all, _*) if !all.isBlank                             => Option(Paragraph(all))
+        case _                                                               => None
+      }
+
+    // The second pass splits Headers out of the paragraphs
+    val pass2: Iterator[Markd] = pass1.flatMap {
+      case Paragraph(content) =>
+        HeaderRegex
+          .split(content)
+          .flatMap { text =>
+            HeaderRegex.findPrefixMatchOf(s"$text\n") match {
+              case None if text.nonEmpty => Some(Paragraph(text.trim))
+              case Some(m: Regex.Match) =>
+                val h = extractHeader(m)
+                // The contents come after the last match in the regex.
+                val lastMatchedGroup =
+                  1 + m.subgroups.lastIndexWhere(_ != null)
+                val headerContents = m.after(lastMatchedGroup).toString
+                if (headerContents.isEmpty) Some(h)
+                else Seq(h, Paragraph(headerContents.trim))
+              case _ => None
+            }
+          }
+      case other: Markd => Option(other)
+    }
+
+    // A third pass allows a Paragraph to "refine" itself to another type.
+    val pass3: Iterator[Markd] = pass2.map {
+      case p: Paragraph => p.refine()
+      case other        => other
+    }
+
+    // Apply a recursive function that makes the flat list into a tree.
+    def treeify(node: Header, flat: Seq[Markd]): (Header, Seq[Markd]) =
+      flat.headOption match {
+        // If the next element in the list is a sub-section (i.e. greater level)
+        case Some(next: Header) if next.level > node.level =>
+          // then the sub-section should be treeified, using as many elements as necessary from
+          // the list.
+          val (subsection, flatRemainder) = treeify(next, flat.tail)
+          // Add the subsection to this node, and continue to treeify this node with the rest.
+          treeify(node.copy(mds = node.mds :+ subsection), flatRemainder)
+        // If the next element in the list is a section of the same or lower level,
+        // then just return, and it can be added to the current node's parent.
+        case Some(_: Header) => (node, flat)
+        // If the next element in the list is any other Markd, then just add it to this node.
+        case Some(next) => treeify(node.copy(mds = node.mds :+ next), flat.tail)
+        // Otherwise processing is complete.
+        case _ => (node, Seq.empty)
+      }
+    val pass4: Header = treeify(Header(0, ""), pass3.toSeq)._1
+
+    // Organize all of the nodes inside the tree.
+    def organizeHeaderContents(node: Header): Header = {
+      val (others, linkRefs, headers) = node.mds
+        .foldRight((List.empty[Markd], List.empty[LinkRef], List.empty[Header])) { case (md, (xs1, xs2, xs3)) =>
+          md match {
+            case header: Header =>
+              (xs1, xs2, organizeHeaderContents(header) :: xs3)
+            case linkRef: LinkRef => (xs1, linkRef :: xs2, xs3)
+            case _                => (md :: xs1, xs2, xs3)
+          }
+        }
+      // The right order is all elements, followed by linkRefs, followed by subheaders.
+      node.copy(mds = others ++ cfg.linkCleaner(linkRefs) ++ headers)
+    }
+    organizeHeaderContents(pass4)
+  }
+}
