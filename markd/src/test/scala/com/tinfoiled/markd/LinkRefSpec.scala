@@ -1,6 +1,5 @@
 package com.tinfoiled.markd
 
-import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
@@ -8,8 +7,7 @@ import org.scalatest.matchers.should.Matchers
   */
 class LinkRefSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing LinkRefs") {
-    val linkrefs =
-      """
+    val linkrefs = """
         |[ref-bare]:
         |[dup]: dup
         |[dup]: dup "dup"
@@ -84,8 +82,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
     }
 
     it("but allow leaving unsorted and undeduplicated") {
-      val md =
-        Header.parse(linkrefs, cfg = new ParserCfg(sortLinkRefs = false))
+      val md = Header.parse(linkrefs, cfg = new ParserCfg(sortLinkRefs = false))
 
       val cleaned = md.build().toString
       cleaned shouldBe
@@ -108,11 +105,8 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
           |[all-postws]: all-postws "all-postws"
           |[all-empty-title]: all-empty-title
           |""".stripMargin
-      Header.parse(
-        cleaned,
-        cfg = new ParserCfg(sortLinkRefs = false)
-      ) shouldBe md
 
+      Header.parse(cleaned, cfg = new ParserCfg(sortLinkRefs = false)) shouldBe md
       md.mds should have size 18
       md.mds.head shouldBe LinkRef("ref-bare", None, None)
       md.mds(1) shouldBe LinkRef("dup", "dup")
@@ -150,11 +144,8 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
       // Header.parse(cleaned) shouldBe md
 
       md.mds should have size 2
-      md.mds.head shouldBe Paragraph(
-        "[space-before]: Leading space?  Not a link ref"
-      )
+      md.mds.head shouldBe Paragraph("[space-before]: Leading space?  Not a link ref")
       md.mds(1) shouldBe LinkRef("url", "url")
     }
-
   }
 }

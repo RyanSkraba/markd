@@ -1,6 +1,5 @@
 package com.tinfoiled.markd
 
-import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
@@ -11,126 +10,126 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
 
     it("should separate into level 1 headers") {
       val md = Header.parse("""English
-            |===
-            |Hello world
-            |# French
-            |Bonjour tout le monde""".stripMargin)
+          |===
+          |Hello world
+          |# French
+          |Bonjour tout le monde""".stripMargin)
       md.mds should have size 2
 
       val cleaned = md.build().toString
       cleaned shouldBe
         """English
-            |==============================================================================
-            |
-            |Hello world
-            |
-            |French
-            |==============================================================================
-            |
-            |Bonjour tout le monde
-            |""".stripMargin
+          |==============================================================================
+          |
+          |Hello world
+          |
+          |French
+          |==============================================================================
+          |
+          |Bonjour tout le monde
+          |""".stripMargin
       Header.parse(cleaned) shouldBe md
     }
 
     it("should nicely nest sections ") {
       val md = Header.parse("""
-            |### Three
-            |## Two
-            |# One
-            |## Two
-            |### Three
-            |""".stripMargin)
+          |### Three
+          |## Two
+          |# One
+          |## Two
+          |### Three
+          |""".stripMargin)
       md.mds should have size 3
 
       val cleaned = md.build().toString
       cleaned shouldBe
         """### Three
-            |
-            |Two
-            |------------------------------------------------------------------------------
-            |
-            |One
-            |==============================================================================
-            |
-            |Two
-            |------------------------------------------------------------------------------
-            |
-            |### Three
-            |""".stripMargin
+          |
+          |Two
+          |------------------------------------------------------------------------------
+          |
+          |One
+          |==============================================================================
+          |
+          |Two
+          |------------------------------------------------------------------------------
+          |
+          |### Three
+          |""".stripMargin
       Header.parse(cleaned) shouldBe md
     }
 
     it("should separate into headers and links") {
       val md = Header.parse("""
-            |outside
-            |[refout]: https://www.refout.com
-            |# header1
-            |h1txt
-            |## header1a
-            |[ref1a]: https://www.ref1a.com
-            |h1atxt
-            |[ref1a_dup]: https://www.ref1a.com
-            |## header1b
-            |h1btxt
-            |### header1b1
-            |h1b1txt
-            |# header2
-            |h2txt
-            |[ref2]: https://www.ref2.com
-            |## header2a
-            |h2atxt
-            |## header2b
-            |h2btxt
-            |[ref2b]: https://www.ref2b.com
-            |""".stripMargin)
+          |outside
+          |[refout]: https://www.refout.com
+          |# header1
+          |h1txt
+          |## header1a
+          |[ref1a]: https://www.ref1a.com
+          |h1atxt
+          |[ref1a_dup]: https://www.ref1a.com
+          |## header1b
+          |h1btxt
+          |### header1b1
+          |h1b1txt
+          |# header2
+          |h2txt
+          |[ref2]: https://www.ref2.com
+          |## header2a
+          |h2atxt
+          |## header2b
+          |h2btxt
+          |[ref2b]: https://www.ref2b.com
+          |""".stripMargin)
 
       val cleaned = md.build().toString
       cleaned shouldBe
         """outside
-            |
-            |[refout]: https://www.refout.com
-            |
-            |header1
-            |==============================================================================
-            |
-            |h1txt
-            |
-            |header1a
-            |------------------------------------------------------------------------------
-            |
-            |h1atxt
-            |
-            |[ref1a]: https://www.ref1a.com
-            |[ref1a_dup]: https://www.ref1a.com
-            |
-            |header1b
-            |------------------------------------------------------------------------------
-            |
-            |h1btxt
-            |
-            |### header1b1
-            |
-            |h1b1txt
-            |
-            |header2
-            |==============================================================================
-            |
-            |h2txt
-            |
-            |[ref2]: https://www.ref2.com
-            |
-            |header2a
-            |------------------------------------------------------------------------------
-            |
-            |h2atxt
-            |
-            |header2b
-            |------------------------------------------------------------------------------
-            |
-            |h2btxt
-            |
-            |[ref2b]: https://www.ref2b.com
-            |""".stripMargin
+          |
+          |[refout]: https://www.refout.com
+          |
+          |header1
+          |==============================================================================
+          |
+          |h1txt
+          |
+          |header1a
+          |------------------------------------------------------------------------------
+          |
+          |h1atxt
+          |
+          |[ref1a]: https://www.ref1a.com
+          |[ref1a_dup]: https://www.ref1a.com
+          |
+          |header1b
+          |------------------------------------------------------------------------------
+          |
+          |h1btxt
+          |
+          |### header1b1
+          |
+          |h1b1txt
+          |
+          |header2
+          |==============================================================================
+          |
+          |h2txt
+          |
+          |[ref2]: https://www.ref2.com
+          |
+          |header2a
+          |------------------------------------------------------------------------------
+          |
+          |h2atxt
+          |
+          |header2b
+          |------------------------------------------------------------------------------
+          |
+          |h2btxt
+          |
+          |[ref2b]: https://www.ref2b.com
+          |""".stripMargin
       Header.parse(cleaned) shouldBe md
 
       md.mds should have size 4
@@ -152,23 +151,13 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
         LinkRef("ref1a", "https://www.ref1a.com"),
         LinkRef("ref1a_dup", "https://www.ref1a.com")
       )
-      h1.mds(2) shouldBe Header(
-        2,
-        "header1b",
-        Paragraph("h1btxt"),
-        Header(3, "header1b1", Paragraph("h1b1txt"))
-      )
+      h1.mds(2) shouldBe Header(2, "header1b", Paragraph("h1btxt"), Header(3, "header1b1", Paragraph("h1b1txt")))
 
       h2.mds should have size 4
       h2.mds.head shouldBe Paragraph("h2txt")
       h2.mds(1) shouldBe LinkRef("ref2", "https://www.ref2.com")
       h2.mds(2) shouldBe Header(2, "header2a", Paragraph("h2atxt"))
-      h2.mds(3) shouldBe Header(
-        2,
-        "header2b",
-        Paragraph("h2btxt"),
-        LinkRef("ref2b", "https://www.ref2b.com")
-      )
+      h2.mds(3) shouldBe Header(2, "header2b", Paragraph("h2btxt"), LinkRef("ref2b", "https://www.ref2b.com"))
     }
   }
 }

@@ -1,6 +1,5 @@
 package com.tinfoiled.markd
 
-import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 

@@ -18,23 +18,9 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       Table.parseRow("one||three") shouldBe Seq("one", "", "three")
       Table.parseRow("one|two|") shouldBe Seq("one", "two")
       Table.parseRow("one|two||||") shouldBe Seq("one", "two")
-      Table.parseRow(raw"\||two|three") shouldBe Seq(
-        raw"\|",
-        "two",
-        "three"
-      )
-      Table.parseRow(raw"\||two|three||\|") shouldBe Seq(
-        raw"\|",
-        "two",
-        "three",
-        "",
-        raw"\|"
-      )
-      Table.parseRow(raw"one\||t\|wo|\|three") shouldBe Seq(
-        raw"one\|",
-        raw"t\|wo",
-        raw"\|three"
-      )
+      Table.parseRow(raw"\||two|three") shouldBe Seq(raw"\|", "two", "three")
+      Table.parseRow(raw"\||two|three||\|") shouldBe Seq(raw"\|", "two", "three", "", raw"\|")
+      Table.parseRow(raw"one\||t\|wo|\|three") shouldBe Seq(raw"one\|", raw"t\|wo", raw"\|three")
     }
 
     it("should access table cells and rows") {
@@ -142,13 +128,7 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       md.title shouldBe "Id"
       md.colSize shouldBe 2
       md.rowSize shouldBe 4
-      md shouldBe Table.from(
-        Seq(Align.LEFT, Align.LEFT),
-        TableRow.from("Id", "Name"),
-        tb1,
-        tb2,
-        tb3
-      )
+      md shouldBe Table.from(Seq(Align.LEFT, Align.LEFT), TableRow.from("Id", "Name"), tb1, tb2, tb3)
 
       // Verify the shortcut to the head
       tb1.head shouldBe "1"
@@ -177,16 +157,16 @@ class TableSpec extends AnyFunSpecLike with Matchers {
 
     it("should clean up a simple table") {
       val md = Header.parse("""Before
-            !
-            !Id        | Name
-            !---    | ---
-            !   [1](https://en.wikipedia.org/wiki/1)    |      One
-            !2|Two
-            !3|Three
-            !
-            !
-            !After
-            !""".stripMargin('!'))
+          !
+          !Id        | Name
+          !---    | ---
+          !   [1](https://en.wikipedia.org/wiki/1)    |      One
+          !2|Two
+          !3|Three
+          !
+          !
+          !After
+          !""".stripMargin('!'))
 
       md.mds should have size 3
       md.mds.head shouldBe Paragraph("Before")
@@ -202,26 +182,26 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       val cleaned = md.build().toString
       cleaned shouldBe
         """Before
-            !
-            !| Id                                   | Name  |
-            !|--------------------------------------|-------|
-            !| [1](https://en.wikipedia.org/wiki/1) | One   |
-            !| 2                                    | Two   |
-            !| 3                                    | Three |
-            !
-            !After
-            !""".stripMargin('!')
+          !
+          !| Id                                   | Name  |
+          !|--------------------------------------|-------|
+          !| [1](https://en.wikipedia.org/wiki/1) | One   |
+          !| 2                                    | Two   |
+          !| 3                                    | Three |
+          !
+          !After
+          !""".stripMargin('!')
       Header.parse(cleaned) shouldBe md
     }
 
     it("should detect column alignment") {
       val md = Header.parse("""
-            !Id1|Id2|Id3|Name
-            !:--   |   :--: |------:  |--:
-            !   1    |1    |1    |      One
-            !22|22|22|Two
-            !333|333|333|Three
-            !""".stripMargin('!'))
+          !Id1|Id2|Id3|Name
+          !:--   |   :--: |------:  |--:
+          !   1    |1    |1    |      One
+          !22|22|22|Two
+          !333|333|333|Three
+          !""".stripMargin('!'))
 
       md.mds should have size 1
       md.mds.head shouldBe Table.from(
@@ -240,11 +220,11 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       val cleaned = md.build().toString
       cleaned shouldBe
         """| Id1 | Id2 | Id3 |  Name |
-             !|-----|:---:|----:|------:|
-             !| 1   |  1  |   1 |   One |
-             !| 22  | 22  |  22 |   Two |
-             !| 333 | 333 | 333 | Three |
-             !""".stripMargin('!')
+          !|-----|:---:|----:|------:|
+          !| 1   |  1  |   1 |   One |
+          !| 22  | 22  |  22 |   Two |
+          !| 333 | 333 | 333 | Three |
+          !""".stripMargin('!')
       Header.parse(cleaned) shouldBe md
     }
 
@@ -270,21 +250,21 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       val cleaned = md.build().toString
       cleaned shouldBe
         """| AAA | BBB | CCC | DDD |
-             !|-----|:---:|----:|-----|
-             !| a   |     |     |     |
-             !| b   |  b  |     |     |
-             !| c   |  c  |   c |     |
-             !| d   |  d  |   d | d   |
-             !| e   |  e  |   e | e   | eee |
-             !| f   |  f  |   f | f   | ff | f | f | f |
-             !|     |     |     |     |
-             !| a   |     |     |     |
-             !|     |  b  |     |     |
-             !|     |     |   c |     |
-             !|     |     |     | d   |
-             !|     |     |     |     | e |
-             !|     |     |     |     |  |  |  | f |
-             !""".stripMargin('!')
+          !|-----|:---:|----:|-----|
+          !| a   |     |     |     |
+          !| b   |  b  |     |     |
+          !| c   |  c  |   c |     |
+          !| d   |  d  |   d | d   |
+          !| e   |  e  |   e | e   | eee |
+          !| f   |  f  |   f | f   | ff | f | f | f |
+          !|     |     |     |     |
+          !| a   |     |     |     |
+          !|     |  b  |     |     |
+          !|     |     |   c |     |
+          !|     |     |     | d   |
+          !|     |     |     |     | e |
+          !|     |     |     |     |  |  |  | f |
+           !""".stripMargin('!')
       md.title shouldBe "AAA"
       md.colSize shouldBe 4
       md.rowSize shouldBe 14
@@ -293,17 +273,17 @@ class TableSpec extends AnyFunSpecLike with Matchers {
 
     it("should handle empty column headers") {
       val md = Table
-        .parse("""|   ||
-               !---|:-:|--:|---
-               !a|b|c|d
-               !""".stripMargin('!'))
+        .parse("""!|   ||
+         !---|:-:|--:|---
+         !a|b|c|d
+         !""".stripMargin('!'))
         .value
       val cleaned = md.build().toString
       cleaned shouldBe
         """|   |   |   |   |
-             !|---|:-:|--:|---|
-             !| a | b | c | d |
-             !""".stripMargin('!')
+          !|---|:-:|--:|---|
+          !| a | b | c | d |
+          !""".stripMargin('!')
       md.title shouldBe ""
       md.colSize shouldBe 4
       md.rowSize shouldBe 2
@@ -313,24 +293,24 @@ class TableSpec extends AnyFunSpecLike with Matchers {
     it("should handle extra pipes") {
       val md = Table
         .parse("""|Id|Name|
-               !|---|---|
-               !|1  |One|
-               ! 2  |Two|
-               !|3  | Three
-               ! 4  | Four
-               ! |5|Five||||
-               !""".stripMargin('!'))
+                 !|---|---|
+                 !|1  |One|
+                 ! 2  |Two|
+                 !|3  | Three
+                 ! 4  | Four
+                 ! |5|Five||||
+                 !""".stripMargin('!'))
         .value
       val cleaned = md.build().toString
       cleaned shouldBe
         """| Id | Name  |
-             !|----|-------|
-             !| 1  | One   |
-             !| 2  | Two   |
-             !| 3  | Three |
-             !| 4  | Four  |
-             !|    | 5     | Five |
-             !""".stripMargin('!')
+          !|----|-------|
+          !| 1  | One   |
+          !| 2  | Two   |
+          !| 3  | Three |
+          !| 4  | Four  |
+          !|    | 5     | Five |
+          !""".stripMargin('!')
       md.title shouldBe "Id"
       md.colSize shouldBe 2
       md.rowSize shouldBe 6
@@ -340,16 +320,16 @@ class TableSpec extends AnyFunSpecLike with Matchers {
     it("should handle escaped pipes") {
       val md = Table
         .parse("""|   \|\||\||
-               !---|:-:|--:|---
-               !a\|a|b\||\|c|d
-               !""".stripMargin('!'))
+                 !---|:-:|--:|---
+                 !a\|a|b\||\|c|d
+                 !""".stripMargin('!'))
         .value
       val cleaned = md.build().toString
       cleaned shouldBe
         """|      | \|\| |  \| |   |
-             !|------|:----:|----:|---|
-             !| a\|a | b\|  | \|c | d |
-             !""".stripMargin('!')
+          !|------|:----:|----:|---|
+          !| a\|a | b\|  | \|c | d |
+          !""".stripMargin('!')
       md.title shouldBe ""
       md.colSize shouldBe 4
       md.rowSize shouldBe 2
@@ -372,9 +352,9 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       val cleaned = md.build().toString
       cleaned shouldBe
         """| A | B |
-             !|---|---|
-             !| a | b |
-             !""".stripMargin('!')
+          !|---|---|
+          !| a | b |
+          !""".stripMargin('!')
       md.title shouldBe "A"
       md.colSize shouldBe 2
       md.rowSize shouldBe 2
@@ -402,199 +382,199 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       it("by row index and column index") {
         md.updated(0, 0, "X").build().toString shouldBe
           """| X | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated(1, 1, "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | X |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated(0, 2, "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| X | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| X | d |
+            !""".stripMargin('!')
       }
 
       it("by row header and column index") {
         md.updated(0, "A", "X").build().toString shouldBe
           """| X | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated(1, "a", "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | X |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated(0, "c", "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| X | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| X | d |
+            !""".stripMargin('!')
       }
 
       it("by row header and column header") {
         md.updated("A", "A", "X").build().toString shouldBe
           """| X | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated("B", "a", "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | X |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated("A", "c", "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| X | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| X | d |
+            !""".stripMargin('!')
       }
 
       it("by adding blank columns if necessary, by row index") {
         md.updated(2, 0, "X").build().toString shouldBe
           """| A | B | X |
-               !|---|---|---|
-               !| a | b |   |
-               !| c | d |   |
-               !""".stripMargin('!')
+            !|---|---|---|
+            !| a | b |   |
+            !| c | d |   |
+            !""".stripMargin('!')
         md.updated(3, 0, "X").build().toString shouldBe
           """| A | B |   | X |
-               !|---|---|---|---|
-               !| a | b |   |   |
-               !| c | d |   |   |
-               !""".stripMargin('!')
+            !|---|---|---|---|
+            !| a | b |   |   |
+            !| c | d |   |   |
+            !""".stripMargin('!')
         // When adding to cells that aren't headers, only that row is affected.
         md.updated(2, 1, "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b | X |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated(10, 2, "X").updated(6, 2, "Y").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |  |  |  |  | Y |  |  |  | X |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |  |  |  |  | Y |  |  |  | X |
+            !""".stripMargin('!')
       }
 
       it("by adding blank columns if necessary, by row header") {
         md.updated(2, "A", "X").build().toString shouldBe
           """| A | B | X |
-               !|---|---|---|
-               !| a | b |   |
-               !| c | d |   |
-               !""".stripMargin('!')
+            !|---|---|---|
+            !| a | b |   |
+            !| c | d |   |
+            !""".stripMargin('!')
         md.updated(3, "A", "X").build().toString shouldBe
           """| A | B |   | X |
-               !|---|---|---|---|
-               !| a | b |   |   |
-               !| c | d |   |   |
-               !""".stripMargin('!')
+            !|---|---|---|---|
+            !| a | b |   |   |
+            !| c | d |   |   |
+            !""".stripMargin('!')
         // When adding to cells that aren't headers, only that row is affected.
         md.updated(2, "a", "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b | X |
+            !| c | d |
+            !""".stripMargin('!')
         md.updated(10, "c", "X").updated(6, "c", "Y").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |  |  |  |  | Y |  |  |  | X |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |  |  |  |  | Y |  |  |  | X |
+            !""".stripMargin('!')
       }
 
       it("by adding blank columns if necessary, by row and column header") {
         md.updated("X", "A", "X").build().toString shouldBe
           """| A | B | X |
-               !|---|---|---|
-               !| a | b |   |
-               !| c | d |   |
-               !""".stripMargin('!')
+            !|---|---|---|
+            !| a | b |   |
+            !| c | d |   |
+            !""".stripMargin('!')
         // When adding to cells that aren't headers, the column is added.
         md.updated("X", "a", "x").build().toString shouldBe
           """| A | B | X |
-               !|---|---|---|
-               !| a | b | x |
-               !| c | d |   |
-               !""".stripMargin('!')
+            !|---|---|---|
+            !| a | b | x |
+            !| c | d |   |
+            !""".stripMargin('!')
       }
 
       it("by adding blank rows if necessary, by index") {
         md.updated(0, 3, "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !| X |   |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !| X |   |
+            !""".stripMargin('!')
         md.updated(1, 5, "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !|   |   |
-               !|   |   |
-               !|   | X |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !|   |   |
+            !|   |   |
+            !|   | X |
+            !""".stripMargin('!')
       }
 
       it("by adding blank rows if necessary, by row header and column index") {
         md.updated(0, "X", "x").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !| x |   |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !| x |   |
+            !""".stripMargin('!')
         md.updated(1, "X", "x").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !| X | x |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !| X | x |
+            !""".stripMargin('!')
       }
 
       it("by adding blank rows if necessary, by headers") {
         md.updated("A", "X", "X").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !| X |   |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !| X |   |
+            !""".stripMargin('!')
         md.updated("B", "X", "x").build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |
-               !| c | d |
-               !| X | x |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |
+            !| c | d |
+            !| X | x |
+            !""".stripMargin('!')
       }
 
       it("and delete a column from a nonheader cell, by index") {
         val updated = md.updated(4, 1, "X")
         updated.build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |  |  | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |  |  | X |
+            !| c | d |
+            !""".stripMargin('!')
 
         // Remove the updated cell, but only because it didn't extend any columns
         updated.updated(4, 1, "") shouldBe md
@@ -606,10 +586,10 @@ class TableSpec extends AnyFunSpecLike with Matchers {
         val updated = md.updated(4, "a", "X")
         updated.build().toString shouldBe
           """| A | B |
-               !|---|---|
-               !| a | b |  |  | X |
-               !| c | d |
-               !""".stripMargin('!')
+            !|---|---|
+            !| a | b |  |  | X |
+            !| c | d |
+            !""".stripMargin('!')
 
         // Remove the updated cell, but only because it didn't extend any columns
         updated.updated(4, "a", "") shouldBe md

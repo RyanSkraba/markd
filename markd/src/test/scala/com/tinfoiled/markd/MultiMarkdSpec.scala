@@ -9,16 +9,15 @@ import org.scalatest.matchers.should.Matchers
 class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
   describe("Replacing subelements") {
     val md: Header = Header.parse("""
-          |# One
-          |# Two
-          |# Three
-          |""".stripMargin)
+        |# One
+        |# Two
+        |# Three
+        |""".stripMargin)
 
     describe("replacing a match one-to-one with another element") {
       it("should replace all matches") {
         md.replaceIn() {
-          case (Some(h @ Header(title, 1, _)), _) if title.startsWith("T") =>
-            Seq(h.copy(title = h.title.toUpperCase))
+          case (Some(h @ Header(title, 1, _)), _) if title.startsWith("T") => Seq(h.copy(title = h.title.toUpperCase))
         }.mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "TWO"),
@@ -32,10 +31,8 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
         }.mds shouldBe Seq(Header(1, "TWO"), Header(1, "THREE"))
       }
       it("should replace the first matching") {
-        md.mapFirstIn() {
-          case h @ Header(title, 1, _) if title.startsWith("T") =>
-            h.copy(title = h.title.toUpperCase)
-        }.mds shouldBe Seq(
+        md.mapFirstIn() { case h @ Header(title, 1, _) if title.startsWith("T") => h.copy(title = h.title.toUpperCase) }
+          .mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "TWO"),
           Header(1, "Three")
@@ -54,23 +51,20 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
 
     describe("removing a match") {
       it("should replace all matches") {
-        md.replaceIn() {
-          case (Some(Header(title, 1, _)), _) if title.startsWith("T") =>
-            Seq.empty
-        }.mds shouldBe Seq(Header(1, "One"))
+        md.replaceIn() { case (Some(Header(title, 1, _)), _) if title.startsWith("T") => Seq.empty }.mds shouldBe Seq(
+          Header(1, "One")
+        )
       }
       it("should replace all matches with filtering") {
         // This isn't very useful
-        md.replaceIn(filter = true) {
-          case (Some(Header(title, 1, _)), _) if title.startsWith("T") =>
-            Seq.empty
-        }.mds shouldBe Seq.empty
+        md.replaceIn(filter = true) { case (Some(Header(title, 1, _)), _) if title.startsWith("T") => Seq.empty }
+          .mds shouldBe Seq.empty
       }
       it("should replace the first") {
-        md.flatMapFirstIn() {
-          case Header(title, 1, _) if title.startsWith("T") =>
-            Seq.empty
-        }.mds shouldBe Seq(Header(1, "One"), Header(1, "Three"))
+        md.flatMapFirstIn() { case Header(title, 1, _) if title.startsWith("T") => Seq.empty }.mds shouldBe Seq(
+          Header(1, "One"),
+          Header(1, "Three")
+        )
       }
     }
 
@@ -100,8 +94,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
       }
       it("should replace the first") {
         md.flatMapFirstIn() {
-          case h @ Header(title, 1, _) if title.startsWith("T") =>
-            Seq(h, h.copy(title = h.title.toUpperCase))
+          case h @ Header(title, 1, _) if title.startsWith("T") => Seq(h, h.copy(title = h.title.toUpperCase))
         }.mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "Two"),
@@ -114,30 +107,24 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
     describe("when a match isn't found") {
       it("should do nothing on all matches") {
         md.replaceIn() {
-          case (Some(h @ Header(title, 1, _)), _) if title.startsWith("F") =>
-            Seq(h.copy(title = h.title.toUpperCase))
+          case (Some(h @ Header(title, 1, _)), _) if title.startsWith("F") => Seq(h.copy(title = h.title.toUpperCase))
         }.mds shouldBe md.mds
       }
       it("should remove all when filtering") {
         md.replaceIn(filter = true) {
-          case (Some(h @ Header(title, 1, _)), _) if title.startsWith("F") =>
-            Seq(h.copy(title = h.title.toUpperCase))
+          case (Some(h @ Header(title, 1, _)), _) if title.startsWith("F") => Seq(h.copy(title = h.title.toUpperCase))
         }.mds shouldBe Seq.empty
       }
       it("should do nothing when no first match") {
-        md.mapFirstIn() {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            h.copy(title = h.title.toUpperCase)
-        }.mds shouldBe md.mds
+        md.mapFirstIn() { case h @ Header(title, 1, _) if title.startsWith("F") => h.copy(title = h.title.toUpperCase) }
+          .mds shouldBe md.mds
         md.flatMapFirstIn() {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            Seq(h.copy(title = h.title.toUpperCase))
+          case h @ Header(title, 1, _) if title.startsWith("F") => Seq(h.copy(title = h.title.toUpperCase))
         }.mds shouldBe md.mds
       }
       it("should help falling back when no first match") {
         md.mapFirstIn(ifNotFound = Seq(Header(1, "Four"))) {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            h.copy(title = h.title.toUpperCase)
+          case h @ Header(title, 1, _) if title.startsWith("F") => h.copy(title = h.title.toUpperCase)
         }.mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "Two"),
@@ -145,8 +132,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
           Header(1, "FOUR")
         )
         md.flatMapFirstIn(ifNotFound = Seq(Header(1, "Four"))) {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            Seq(h.copy(title = h.title.toUpperCase))
+          case h @ Header(title, 1, _) if title.startsWith("F") => Seq(h.copy(title = h.title.toUpperCase))
         }.mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "Two"),
@@ -154,16 +140,13 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
           Header(1, "FOUR")
         )
         md.mapFirstIn(replace = true, ifNotFound = Seq(Header(1, "Four"))) {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            h.copy(title = h.title.toUpperCase)
+          case h @ Header(title, 1, _) if title.startsWith("F") => h.copy(title = h.title.toUpperCase)
         }.mds shouldBe Seq(Header(1, "FOUR"))
         md.flatMapFirstIn(replace = true, ifNotFound = Seq(Header(1, "Four"))) {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            Seq(h.copy(title = h.title.toUpperCase))
+          case h @ Header(title, 1, _) if title.startsWith("F") => Seq(h.copy(title = h.title.toUpperCase))
         }.mds shouldBe Seq(Header(1, "FOUR"))
         md.mapFirstIn(ifNotFound = Header(1, "Four")) {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            h.copy(title = h.title.toUpperCase)
+          case h @ Header(title, 1, _) if title.startsWith("F") => h.copy(title = h.title.toUpperCase)
         }.mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "Two"),
@@ -171,8 +154,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
           Header(1, "FOUR")
         )
         md.mapFirstIn(ifNotFound = Header(1, "Four") +: md.mds, replace = true) {
-          case h @ Header(title, 1, _) if title.startsWith("F") =>
-            h.copy(title = h.title.toUpperCase)
+          case h @ Header(title, 1, _) if title.startsWith("F") => h.copy(title = h.title.toUpperCase)
         }.mds shouldBe Seq(
           Header(1, "FOUR"),
           Header(1, "One"),
@@ -184,9 +166,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
 
     describe("when matching on None to append") {
       it("should append on all matches") {
-        md.replaceIn() { case (None, _) =>
-          Seq(Header(1, "Four"))
-        }.mds shouldBe Seq(
+        md.replaceIn() { case (None, _) => Seq(Header(1, "Four")) }.mds shouldBe Seq(
           Header(1, "One"),
           Header(1, "Two"),
           Header(1, "Three"),
@@ -194,17 +174,13 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
         )
       }
       it("should remove all but the element when filtering") {
-        md.replaceIn(filter = true) { case (None, _) =>
-          Seq(Header(1, "Four"))
-        }.mds shouldBe Seq(Header(1, "Four"))
+        md.replaceIn(filter = true) { case (None, _) => Seq(Header(1, "Four")) }.mds shouldBe Seq(Header(1, "Four"))
       }
     }
 
     describe("when matching on 0 to prepend") {
       it("should prepend on all matches") {
-        md.replaceIn() { case (Some(md), 0) =>
-          Seq(Header(1, "Zero"), md)
-        }.mds shouldBe Seq(
+        md.replaceIn() { case (Some(md), 0) => Seq(Header(1, "Zero"), md) }.mds shouldBe Seq(
           Header(1, "Zero"),
           Header(1, "One"),
           Header(1, "Two"),
@@ -212,9 +188,10 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
         )
       }
       it("should remove all but the element and the head when filtering") {
-        md.replaceIn(filter = true) { case (Some(md), 0) =>
-          Seq(Header(1, "Zero"), md)
-        }.mds shouldBe Seq(Header(1, "Zero"), Header(1, "One"))
+        md.replaceIn(filter = true) { case (Some(md), 0) => Seq(Header(1, "Zero"), md) }.mds shouldBe Seq(
+          Header(1, "Zero"),
+          Header(1, "One")
+        )
       }
     }
 
@@ -247,7 +224,45 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
     describe("in a complicated internal match") {
 
       val md: Header = Header.parse("""
-            !One
+          !One
+          !==============================================================================
+          !
+          !| A1 | A2 |
+          !|----|----|
+          !| 1  | 2  |
+          !
+          !| B1 | B2 |
+          !|----|----|
+          !| 10 | 20 |
+          !
+          !Two
+          !==============================================================================
+          !
+          !| A1 | A2 |
+          !|----|----|
+          !| 1  | 2  |
+          !
+          !| B1 | B2 |
+          !|----|----|
+          !| 10 | 30 |
+          !""".stripMargin('!'))
+
+      it("should update the B1 table in the Two section") {
+
+        // This is a complicated internal replacement: the first replacement finds
+        // section Two and the second updates one specific table in the section
+        val replaced = md.mapFirstIn() {
+          // Matches the Two section and replace the contents inside
+          case weekly @ Header(title, 1, _) if title.startsWith("Two") =>
+            weekly.mapFirstIn() {
+              // Matches the B1 table and updates it with our new table
+              case tb @ Table(_, Seq(TableRow(Seq(tableName: String, _*)), _*)) if tableName == "B1" =>
+                tb.updated(1, 1, "X")
+            }
+        }
+
+        replaced.build().toString shouldBe
+          """One
             !==============================================================================
             !
             !| A1 | A2 |
@@ -267,65 +282,23 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
             !
             !| B1 | B2 |
             !|----|----|
-            !| 10 | 30 |
-            !""".stripMargin('!'))
-
-      it("should update the B1 table in the Two section") {
-
-        // This is a complicated internal replacement: the first replacement finds
-        // section Two and the second updates one specific table in the section
-        val replaced = md.mapFirstIn() {
-          // Matches the Two section and replace the contents inside
-          case weekly @ Header(title, 1, _) if title.startsWith("Two") =>
-            weekly.mapFirstIn() {
-              // Matches the B1 table and updates it with our new table
-              case tb @ Table(_, Seq(TableRow(Seq(tableName: String, _*)), _*)) if tableName == "B1" =>
-                tb.updated(1, 1, "X")
-            }
-        }
-
-        replaced.build().toString shouldBe
-          """One
-              !==============================================================================
-              !
-              !| A1 | A2 |
-              !|----|----|
-              !| 1  | 2  |
-              !
-              !| B1 | B2 |
-              !|----|----|
-              !| 10 | 20 |
-              !
-              !Two
-              !==============================================================================
-              !
-              !| A1 | A2 |
-              !|----|----|
-              !| 1  | 2  |
-              !
-              !| B1 | B2 |
-              !|----|----|
-              !| 10 | X  |
-              !""".stripMargin('!')
+            !| 10 | X  |
+            !""".stripMargin('!')
       }
 
       it("should find the sections") {
         val h1One = md.collectFirstRecursive { case h @ Header(_, 1, _) => h }
         h1One.value.title shouldBe "One"
 
-        val h1Two = md.collectFirstRecursive {
-          case h @ Header(_, 1, _) if h.title.startsWith("T") => h
-        }
+        val h1Two = md.collectFirstRecursive { case h @ Header(_, 1, _) if h.title.startsWith("T") => h }
         h1Two.value.title shouldBe "Two"
 
-        val tableB1 = md.collectFirstRecursive {
-          case tbl: Table if tbl.title == "B1" => tbl
-        }
+        val tableB1 = md.collectFirstRecursive { case tbl: Table if tbl.title == "B1" => tbl }
         tableB1.value.build().toString shouldBe
           """| B1 | B2 |
-               !|----|----|
-               !| 10 | 20 |
-               !""".stripMargin('!')
+            !|----|----|
+            !| 10 | 20 |
+            !""".stripMargin('!')
 
         val tableB12 = md.collectFirstRecursive {
           case tbl: Table if tbl.mds.exists(_.cells.contains("30")) =>
@@ -333,9 +306,9 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
         }
         tableB12.value.build().toString shouldBe
           """| B1 | B2 |
-               !|----|----|
-               !| 10 | 30 |
-               !""".stripMargin('!')
+            !|----|----|
+            !| 10 | 30 |
+            !""".stripMargin('!')
       }
 
       it("should replace recursively with identity") {
@@ -343,33 +316,31 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
       }
 
       it("should replace table rows recursively") {
-        val replaced = md.replaceRecursively {
-          case row: TableRow if row.head == "B1" => TableRow.from("C1", "C2")
-        }
+        val replaced = md.replaceRecursively { case row: TableRow if row.head == "B1" => TableRow.from("C1", "C2") }
 
         replaced.build().toString shouldBe
           """One
-              !==============================================================================
-              !
-              !| A1 | A2 |
-              !|----|----|
-              !| 1  | 2  |
-              !
-              !| C1 | C2 |
-              !|----|----|
-              !| 10 | 20 |
-              !
-              !Two
-              !==============================================================================
-              !
-              !| A1 | A2 |
-              !|----|----|
-              !| 1  | 2  |
-              !
-              !| C1 | C2 |
-              !|----|----|
-              !| 10 | 30 |
-              !""".stripMargin('!')
+            !==============================================================================
+            !
+            !| A1 | A2 |
+            !|----|----|
+            !| 1  | 2  |
+            !
+            !| C1 | C2 |
+            !|----|----|
+            !| 10 | 20 |
+            !
+            !Two
+            !==============================================================================
+            !
+            !| A1 | A2 |
+            !|----|----|
+            !| 1  | 2  |
+            !
+            !| C1 | C2 |
+            !|----|----|
+            !| 10 | 30 |
+            !""".stripMargin('!')
       }
     }
   }

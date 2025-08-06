@@ -1,6 +1,5 @@
 package com.tinfoiled.markd
 
-import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
@@ -84,11 +83,7 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
 
         it("creates paragraphs in a section") {
           val md = Header.parse(s"# Main\n$content")
-          md shouldBe Header(
-            0,
-            "",
-            Header(1, "Main", Paragraph("Hello"), Paragraph("world"))
-          )
+          md shouldBe Header(0, "", Header(1, "Main", Paragraph("Hello"), Paragraph("world")))
 
           val cleaned = md.build().toString
           cleaned shouldBe
