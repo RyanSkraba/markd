@@ -1,4 +1,5 @@
-# Markd - A scala library for parsing and cleaning Markdown
+Markd - A scala library for parsing and cleaning Markdown
+==============================================================================
 
 [![Java CI with Maven](https://github.com/RyanSkraba/markd/actions/workflows/maven.yml/badge.svg)](https://github.com/RyanSkraba/markd/actions/workflows/maven.yml)
 
@@ -19,7 +20,8 @@ Unsupported markdown is just treated like plain text in a paragraph, and can be 
 
 There isn't any rigorous specification for markdown, but future work will target [CommonMark](https://commonmark.org).
 
-## Using Markd
+Using Markd
+------------------------------------------------------------------------------
 
 You can import the library into your project from [maven central](https://central.sonatype.com/artifact/com.tinfoiled/markd):
 
@@ -31,7 +33,8 @@ You can import the library into your project from [maven central](https://centra
 </dependency>
 ```
 
-## Building Markd
+Building Markd
+------------------------------------------------------------------------------
 
 ```sh
 # Local build running all the tests
