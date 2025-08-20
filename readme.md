@@ -16,7 +16,9 @@ This library supports parsing [Markdown](https://en.wikipedia.org/wiki/Markdown)
 Unsupported markdown is just treated like plain text in a paragraph, and can be passed through parsing/rewriting _without loss_.
 
 * ❌ Ordered and unordered lists
-* ❌ HTML rendering (other JVM libraries do this very [well](https://github.com/commonmark/commonmark-java)).
+* ❌ Section breaks
+*  ❌ HTML rendering (other JVM libraries do this very [well](https://github.com/commonmark/commonmark-java))
+
 
 There isn't any rigorous specification for markdown, but future work will target [CommonMark](https://commonmark.org).
 
@@ -31,6 +33,48 @@ You can import the library into your project from [maven central](https://centra
   <artifactId>markd_2.13</artifactId>
   <version>0.0.1</version>
 </dependency>
+```
+
+Then you can use the API to parse and rewrite markdown text:
+
+```scala
+// Some simple markdown text in a string
+val txt = {
+"""English
+  |===
+  |Hello world
+  |# French
+  |Bonjour tout le monde
+  |""".stripMargin
+}
+
+// Parse it into a structure
+val md: Header = Header.parse(txt)
+
+// This gives this structure, note that the Header(0) contains the whole 
+// document, which is composed of two top-level headers, each containing one
+// paragraph
+val result = Header("", 0, List(
+  Header("English", 1, List(Paragraph("Hello world"))),
+  Header("French", 1, List(Paragraph("Bonjour tout le monde")))
+)
+  
+// And print it out again  
+println(md.build().toString)
+```
+
+The output of the snippet above would be:
+
+```m̀arkdown
+English
+==============================================================================
+
+Hello world
+
+French
+==============================================================================
+
+Bonjour tout le monde
 ```
 
 Building Markd

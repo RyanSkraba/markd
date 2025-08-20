@@ -9,12 +9,23 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing markdown into Header sections") {
 
     it("should separate into level 1 headers") {
-      val md = Header.parse("""English
+      val txt =
+        """English
           |===
           |Hello world
           |# French
-          |Bonjour tout le monde""".stripMargin)
+          |Bonjour tout le monde
+          |""".stripMargin
+      val md = Header.parse(txt)
       md.mds should have size 2
+      md shouldBe Header(
+        "",
+        0,
+        List(
+          Header("English", 1, List(Paragraph("Hello world"))),
+          Header("French", 1, List(Paragraph("Bonjour tout le monde")))
+        )
+      )
 
       val cleaned = md.build().toString
       cleaned shouldBe
