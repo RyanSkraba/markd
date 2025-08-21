@@ -4,6 +4,12 @@ import com.tinfoiled.markd.Align.Align
 
 import scala.util.matching.Regex
 
+/** Alignment in a Table. */
+object Align extends Enumeration {
+  type Align = Value
+  val LEFT, CENTER, RIGHT = Value
+}
+
 /** Markdown table.
   *
   * {{{

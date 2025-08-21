@@ -19,14 +19,6 @@ package com.tinfoiled
   */
 package object markd {
 
-  /** Alignment in a Table. */
-  object Align extends Enumeration {
-    type Align = Value
-    val LEFT, CENTER, RIGHT = Value
-  }
-
-  import Align._
-
   /** Helps build the model when parsing contents.
     * @param sortLinkRefs
     *   Whether to sort and deduplicate LinkRefs while parsing (true by default).
