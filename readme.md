@@ -5,22 +5,43 @@ Markd - A scala library for parsing and cleaning Markdown
 
 **TL;DR**: Read markdown text into scala data structures that you can manipulate programmatically, and write the contents back out to plain text.
 
+While there isn't any rigorous specification for markdown, this project will target [CommonMark](https://commonmark.org).
+
 This library supports parsing [Markdown](https://en.wikipedia.org/wiki/Markdown) text into a data structure, and supports some common (but not all) markdown features:
 
-* ✅ Headers are parsed into a tree-like structure: smaller sub-headers are "children" to the higher level headers, and paragraphs "belong" to the closest header.
-* ✅ Paragraphs (includes all non-supported elements)
-* ✅ Comments
-* ✅ Fenced code blocks (including JSON formatting)
-* ✅ Links and link references
+* ✅ **Headers** (both atx and setext styles). Headers are a tree-like structure; each header contains the paragraphs and other markdown elements in its section, including subheaders.
+* ✅ **Fenced code blocks** (including JSON formatting)
+* ✅ **Link references**
+* ✅ **Comments** (not part of CommonMark)
+* ✅ **Tables** (not part of CommonMark)
+* ✅ **Paragraphs** (includes all non-supported elements)
 
-Unsupported markdown is just treated like plain text in a paragraph, and can be passed through parsing/rewriting _without loss_.
+Unsupported markdown can be passed through parsing/rewriting _without loss_.
 
+* ❌ Thematic breaks
+* ❌ Block quotes
+* ❌ Indented code bocks
+* ❌ HTML blocks
+* ❌ Unrecognized markdown
+* ❌ Most inlined elements like links, images, bold, italics, monospaced are just treated like plain text in a Paragraph
 * ❌ Ordered and unordered lists
-* ❌ Section breaks
-*  ❌ HTML rendering (other JVM libraries do this very [well](https://github.com/commonmark/commonmark-java))
+* ❌ HTML rendering (other JVM libraries do this very [well](https://github.com/commonmark/commonmark-java))
 
+<!--
+Internal notes:
 
-There isn't any rigorous specification for markdown, but future work will target [CommonMark](https://commonmark.org).
+https://spec.commonmark.org/current/#thematic-breaks
+
+TODO:
+- Add Break parsing
+- Add indented code block parsing  
+- Use a Document instead of Header(0) for parsing
+- FormatCfg 
+  - minify
+  - atx or setext
+  - fenced break style
+
+-->
 
 Using Markd
 ------------------------------------------------------------------------------
