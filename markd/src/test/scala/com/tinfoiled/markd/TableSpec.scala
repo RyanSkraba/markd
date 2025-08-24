@@ -156,7 +156,7 @@ class TableSpec extends AnyFunSpecLike with Matchers {
     }
 
     it("should clean up a simple table") {
-      val md = Header.parse("""Before
+      val md = Doc.parse("""Before
           !
           !Id        | Name
           !---    | ---
@@ -191,11 +191,11 @@ class TableSpec extends AnyFunSpecLike with Matchers {
           !
           !After
           !""".stripMargin('!')
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should detect column alignment") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           !Id1|Id2|Id3|Name
           !:--   |   :--: |------:  |--:
           !   1    |1    |1    |      One
@@ -225,7 +225,7 @@ class TableSpec extends AnyFunSpecLike with Matchers {
           !| 22  | 22  |  22 |   Two |
           !| 333 | 333 | 333 | Three |
           !""".stripMargin('!')
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should handle ragged rows") {

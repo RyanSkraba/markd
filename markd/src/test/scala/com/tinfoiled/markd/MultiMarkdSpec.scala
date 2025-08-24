@@ -8,7 +8,7 @@ import org.scalatest.matchers.should.Matchers
   */
 class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
   describe("Replacing subelements") {
-    val md: Header = Header.parse("""
+    val md: Doc = Doc.parse("""
         |# One
         |# Two
         |# Three
@@ -223,7 +223,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
 
     describe("in a complicated internal match") {
 
-      val md: Header = Header.parse("""
+      val md: Doc = Doc.parse("""
           !One
           !==============================================================================
           !

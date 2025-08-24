@@ -9,12 +9,12 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing a Paragraph") {
 
     it("should be empty if there aren't any contents") {
-      val md = Header.parse("     \t\n\n")
-      md shouldBe Header(0, "")
+      val md = Doc.parse("     \t\n\n")
+      md shouldBe Doc()
 
       val cleaned = md.build().toString
       cleaned shouldBe ""
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     for (
@@ -32,17 +32,17 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
     ) {
       describe(s"for the $tag paragraph") {
         it("creates a simple paragraph in no section") {
-          val md = Header.parse(content)
-          md shouldBe Header(0, "", Paragraph(content.trim))
+          val md = Doc.parse(content)
+          md shouldBe Doc(Paragraph(content.trim))
 
           val cleaned = md.build().toString
           cleaned shouldBe s"${content.trim}\n"
-          Header.parse(cleaned) shouldBe md
+          Doc.parse(cleaned) shouldBe md
         }
 
         it("creates a simple paragraph in a section") {
-          val md = Header.parse(s"# Main\n$content")
-          md shouldBe Header(0, "", Header(1, "Main", Paragraph(content.trim)))
+          val md = Doc.parse(s"# Main\n$content")
+          md shouldBe Doc(Header(1, "Main", Paragraph(content.trim)))
 
           val cleaned = md.build().toString
           cleaned shouldBe
@@ -51,7 +51,7 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
                |
                |${content.trim}
                |""".stripMargin
-          Header.parse(cleaned) shouldBe md
+          Doc.parse(cleaned) shouldBe md
         }
       }
     }
@@ -69,8 +69,8 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
     ) {
       describe(s"for the $tag paragraphs") {
         it("creates paragraphs in no sections") {
-          val md = Header.parse(content)
-          md shouldBe Header(0, "", Paragraph("Hello"), Paragraph("world"))
+          val md = Doc.parse(content)
+          md shouldBe Doc(Paragraph("Hello"), Paragraph("world"))
 
           val cleaned = md.build().toString
           cleaned shouldBe
@@ -78,12 +78,12 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
                |
                |world
                |""".stripMargin
-          Header.parse(cleaned) shouldBe md
+          Doc.parse(cleaned) shouldBe md
         }
 
         it("creates paragraphs in a section") {
-          val md = Header.parse(s"# Main\n$content")
-          md shouldBe Header(0, "", Header(1, "Main", Paragraph("Hello"), Paragraph("world")))
+          val md = Doc.parse(s"# Main\n$content")
+          md shouldBe Doc(Header(1, "Main", Paragraph("Hello"), Paragraph("world")))
 
           val cleaned = md.build().toString
           cleaned shouldBe
@@ -94,7 +94,7 @@ class ParagraphSpec extends AnyFunSpecLike with Matchers {
                |
                |world
                |""".stripMargin
-          Header.parse(cleaned) shouldBe md
+          Doc.parse(cleaned) shouldBe md
         }
       }
     }

@@ -9,7 +9,7 @@ package com.tinfoiled
   * {{{
   * files
   *   .foreach(f => {
-  *     val md = Header.parse(f.slurp())
+  *     val md = Doc.parse(f.slurp())
   *     f.writeAll(md.build().toString)
   *   })
   * }}}
@@ -38,7 +38,7 @@ package object markd {
 
     /** Apply this configuration to an element, reparsing it as a clean model.
       */
-    def clean(md: Markd, cfg: FormatCfg = FormatCfg.Default): Header = Header.parse(md.build().toString, this)
+    def clean(md: Markd, cfg: FormatCfg = FormatCfg.Default): Doc = Doc.parse(md.build().toString, this)
   }
 
   /** Helps write the model to the output. */

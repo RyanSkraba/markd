@@ -16,15 +16,11 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |# French
           |Bonjour tout le monde
           |""".stripMargin
-      val md = Header.parse(txt)
+      val md = Doc.parse(txt)
       md.mds should have size 2
-      md shouldBe Header(
-        "",
-        0,
-        List(
-          Header("English", 1, List(Paragraph("Hello world"))),
-          Header("French", 1, List(Paragraph("Bonjour tout le monde")))
-        )
+      md shouldBe Doc(
+        Header("English", 1, List(Paragraph("Hello world"))),
+        Header("French", 1, List(Paragraph("Bonjour tout le monde")))
       )
 
       val cleaned = md.build().toString
@@ -39,11 +35,11 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |
           |Bonjour tout le monde
           |""".stripMargin
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should nicely nest sections ") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |### Three
           |## Two
           |# One
@@ -67,11 +63,11 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |
           |### Three
           |""".stripMargin
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should separate into headers and links") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |outside
           |[refout]: https://www.refout.com
           |# header1
@@ -141,7 +137,7 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |
           |[ref2b]: https://www.ref2b.com
           |""".stripMargin
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
 
       md.mds should have size 4
       md.mds.head shouldBe Paragraph("outside")

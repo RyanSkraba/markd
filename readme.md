@@ -35,7 +35,6 @@ https://spec.commonmark.org/current/#thematic-breaks
 TODO:
 - Add Break parsing
 - Add indented code block parsing  
-- Use a Document instead of Header(0) for parsing
 - FormatCfg 
   - minify
   - atx or setext
@@ -70,12 +69,12 @@ val txt = {
 }
 
 // Parse it into a structure
-val md: Header = Header.parse(txt)
+val md: Header = Doc.parse(txt)
 
 // This gives this structure, note that the Header(0) contains the whole 
 // document, which is composed of two top-level headers, each containing one
 // paragraph
-val result = Header("", 0, List(
+val result = Doc(
   Header("English", 1, List(Paragraph("Hello world"))),
   Header("French", 1, List(Paragraph("Bonjour tout le monde")))
 )

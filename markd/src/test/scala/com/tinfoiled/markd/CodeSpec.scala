@@ -8,13 +8,13 @@ import org.scalatest.matchers.should.Matchers
 class CodeSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing a Code block") {
     it("should find a standalone element") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |```bash
           |echo Hello world
           |```
           |""".stripMargin)
 
-      md shouldBe Header(0, "", Code("bash", "echo Hello world\n"))
+      md shouldBe Doc(Code("bash", "echo Hello world\n"))
 
       val cleaned = md.build().toString
       cleaned shouldBe
@@ -22,17 +22,17 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |echo Hello world
           |```
           |""".stripMargin
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     describe("and ignoring elements inside a code block") {
       it("should ignore a header inside a code block") {
-        val md = Header.parse("""
+        val md = Doc.parse("""
             |```bash
             |# echo Hello world
             |```
             |""".stripMargin)
-        md shouldBe Header(0, "", Code("bash", "# echo Hello world\n"))
+        md shouldBe Doc(Code("bash", "# echo Hello world\n"))
 
         val cleaned = md.build().toString
         cleaned shouldBe
@@ -40,16 +40,16 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
             |# echo Hello world
             |```
             |""".stripMargin
-        Header.parse(cleaned) shouldBe md
+        Doc.parse(cleaned) shouldBe md
       }
 
       it("should ignore a comment inside a code block") {
-        val md = Header.parse("""
+        val md = Doc.parse("""
             |```bash
             |    <!--   comment  -->
             |```
             |""".stripMargin)
-        md shouldBe Header(0, "", Code("bash", "    <!--   comment  -->\n"))
+        md shouldBe Doc(Code("bash", "    <!--   comment  -->\n"))
 
         val cleaned = md.build().toString
         cleaned shouldBe
@@ -57,17 +57,17 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
             |    <!--   comment  -->
             |```
             |""".stripMargin
-        Header.parse(cleaned) shouldBe md
+        Doc.parse(cleaned) shouldBe md
       }
     }
 
     it("should ignore unnecessary whitespace") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |```bash.....
           |.....echo Hello world.....
           |```.....
         """.stripMargin.replace(".", " "))
-      md shouldBe Header(0, "", Code("bash", "     echo Hello world     \n"))
+      md shouldBe Doc(Code("bash", "     echo Hello world     \n"))
 
       val cleaned = md.build().toString
       cleaned shouldBe
@@ -75,17 +75,17 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |.....echo Hello world.....
           |```
           |""".stripMargin.replace(".", " ")
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should ignore a code block with bad whitespace") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |   ```bash
           |echo Hello world
           |```
         """.stripMargin.replace(".", " "))
       // TODO: What do we expect here?  This is probably not what we want and cleaning breaks.
-      // md shouldBe Header(0, "", Paragraph("   ```bash\necho Hello world\n```"))
+      // md shouldBe Doc(Paragraph("   ```bash\necho Hello world\n```"))
 
       val cleaned = md.build().toString
       cleaned shouldBe
@@ -94,23 +94,23 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |
           |``
           |""".stripMargin.replace(".", " ")
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     // TODO: This doesn't quite work.
     ignore("should ignore an internal code block") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |echo ```Hello``` world
           |""".stripMargin)
-      md shouldBe Header(0, "", Paragraph("echo ```Hello``` world"))
+      md shouldBe Doc(Paragraph("echo ```Hello``` world"))
 
       val cleaned = md.build().toString
       cleaned shouldBe """echo ```Hello``` world"""
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should prettify a JSON code block") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |```json
           |{"id": 1, "names": ["One", "Un"]}
           |```
@@ -125,11 +125,11 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |}
           |```
           |""".stripMargin.replace(".", " ")
-      Header.parse(cleaned).build().toString shouldBe cleaned
+      Doc.parse(cleaned).build().toString shouldBe cleaned
     }
 
     it("should not prettify a JSON code block with invalid JSON") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |```json
           |{"id": ##, "names": ["One", "Un"]}
           |```
@@ -141,11 +141,11 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |{"id": ##, "names": ["One", "Un"]}
           |```
           |""".stripMargin.replace(".", " ")
-      Header.parse(cleaned) shouldBe md
+      Doc.parse(cleaned) shouldBe md
     }
 
     it("should prettify a jsonline code block") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |```jsonline
           |{"id": 1, "names": ["One", "Un"]}
           |{"id": 2, "names": ["Two", "Deux"]}
@@ -159,11 +159,11 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |{"id":2,"names":["Two","Deux"]}
           |```
           |""".stripMargin.replace(".", " ")
-      Header.parse(cleaned).build().toString shouldBe cleaned
+      Doc.parse(cleaned).build().toString shouldBe cleaned
     }
 
     it("should prettify only the valid lines in jsonline or json line code blocks") {
-      val md = Header.parse("""
+      val md = Doc.parse("""
           |```jsonline
           |jsonline can't be split over lines
           |{"id": 1,
@@ -210,7 +210,7 @@ class CodeSpec extends AnyFunSpecLike with Matchers {
           |{"id": 8,     "names": ["Eight", "Huit"}
           |```
           |""".stripMargin.replace(".", " ")
-      Header.parse(cleaned).build().toString shouldBe cleaned
+      Doc.parse(cleaned).build().toString shouldBe cleaned
     }
   }
 }
