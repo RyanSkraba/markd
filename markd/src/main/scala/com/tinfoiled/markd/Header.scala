@@ -20,9 +20,11 @@ import scala.util.matching.Regex
   * @param mds
   *   The internal subsections and parsed [[Markd]] elements.
   */
-case class Header(title: String, level: Int, mds: Seq[Markd]) extends MultiMarkd[Markd] {
+case class Header(level: Int, title: String, mds: Markd*) extends MultiMarkd[Markd] {
 
   type Self = Header
+
+  def copy(level: Int = level, title: String = title, mds: Seq[Markd] = mds): Header = Header(level, title, mds: _*)
 
   override def copyMds(newMds: Seq[Markd]): Self = copy(mds = newMds)
 
@@ -38,10 +40,10 @@ case class Header(title: String, level: Int, mds: Seq[Markd]) extends MultiMarkd
     *   This header with the new subsection prepended to it.
     */
   def prepend(innerTitle: String, innerMds: Markd*): Header = {
-    val toPrepend = Header(innerTitle, level + 1, innerMds)
+    val toPrepend = Header(level + 1, innerTitle, innerMds: _*)
     flatMapFirstIn(ifNotFound = mds :+ toPrepend, replace = true) {
-      case h @ Header(_, lvl, _) if lvl == toPrepend.level && toPrepend != h => Seq(toPrepend, h)
-      case h @ Header(_, lvl, _) if lvl == toPrepend.level                   => Seq(h)
+      case h @ Header(lvl, _, _*) if lvl == toPrepend.level && toPrepend != h => Seq(toPrepend, h)
+      case h @ Header(lvl, _, _*) if lvl == toPrepend.level                   => Seq(h)
     }
   }
 
@@ -54,8 +56,4 @@ case class Header(title: String, level: Int, mds: Seq[Markd]) extends MultiMarkd
     }
     buildSub(sb, if (level == 0) None else Some(this), cfg)
   }
-}
-
-object Header {
-  def apply(level: Int, title: String, sub: Markd*): Header = Header(title, level, sub)
 }

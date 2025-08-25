@@ -3,8 +3,7 @@ package com.tinfoiled.markd
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[Header]]
-  */
+/** Unit tests for [[Header]] */
 class HeaderSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing markdown into Header sections") {
 
@@ -19,8 +18,8 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
       val md = Doc.parse(txt)
       md.mds should have size 2
       md shouldBe Doc(
-        Header("English", 1, List(Paragraph("Hello world"))),
-        Header("French", 1, List(Paragraph("Bonjour tout le monde")))
+        Header(1, "English", Paragraph("Hello world")),
+        Header(1, "French", Paragraph("Bonjour tout le monde"))
       )
 
       val cleaned = md.build().toString

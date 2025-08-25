@@ -105,12 +105,12 @@ object Doc {
           // the list.
           val (subsection, flatRemainder) = treeify(next, flat.tail)
           // Add the subsection to this node, and continue to treeify this node with the rest.
-          treeify(node.copy(mds = node.mds :+ subsection), flatRemainder)
+          treeify(node.copyMds(node.mds :+ subsection), flatRemainder)
         // If the next element in the list is a section of the same or lower level,
         // then just return, and it can be added to the current node's parent.
         case Some(_: Header) => (node, flat)
         // If the next element in the list is any other Markd, then just add it to this node.
-        case Some(next) => treeify(node.copy(mds = node.mds :+ next), flat.tail)
+        case Some(next) => treeify(node.copyMds(node.mds :+ next), flat.tail)
         // Otherwise processing is complete.
         case _ => (node, Seq.empty)
       }
