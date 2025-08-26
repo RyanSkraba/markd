@@ -15,12 +15,12 @@ import scala.util.matching.Regex
   * @param title
   *   optionally a title or description of the link for hover text
   */
-case class LinkRef(ref: String, url: Option[String] = None, title: Option[String] = None) extends Markd {
+case class LinkRef(ref: String, url: Option[String] = None, title: Option[String] = None) extends MarkdNode {
 
   /** Don't space between LinkRefs */
   override def buildPreSpace(
       sb: StringBuilder = new StringBuilder(),
-      prev: Option[Markd] = None,
+      prev: Option[MarkdNode] = None,
       cfg: FormatCfg = FormatCfg.Default
   ): StringBuilder = prev match {
     case Some(LinkRef(_, _, _)) => sb

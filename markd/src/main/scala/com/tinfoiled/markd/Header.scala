@@ -18,15 +18,15 @@ import scala.util.matching.Regex
   * @param title
   *   The title of the section
   * @param mds
-  *   The internal subsections and parsed [[Markd]] elements.
+  *   The internal subsections and parsed [[MarkdNode]] nodes.
   */
-case class Header(level: Int, title: String, mds: Markd*) extends MultiMarkd[Markd] {
+case class Header(level: Int, title: String, mds: MarkdNode*) extends MarkdContainer[MarkdNode] {
 
   type Self = Header
 
-  def copy(level: Int = level, title: String = title, mds: Seq[Markd] = mds): Header = Header(level, title, mds: _*)
+  def copy(level: Int = level, title: String = title, mds: Seq[MarkdNode] = mds): Header = Header(level, title, mds: _*)
 
-  override def copyMds(newMds: Seq[Markd]): Self = copy(mds = newMds)
+  override def copyMds(newMds: Seq[MarkdNode]): Self = copy(mds = newMds)
 
   /** Helper method to simplify prepending a sublevel header at the top of this section. A new subsection that is one
     * level below this one will be added, after the content of this section but before any subsections. Appending is
@@ -39,7 +39,7 @@ case class Header(level: Int, title: String, mds: Markd*) extends MultiMarkd[Mar
     * @return
     *   This header with the new subsection prepended to it.
     */
-  def prepend(innerTitle: String, innerMds: Markd*): Header = {
+  def prepend(innerTitle: String, innerMds: MarkdNode*): Header = {
     val toPrepend = Header(level + 1, innerTitle, innerMds: _*)
     flatMapFirstIn(ifNotFound = mds :+ toPrepend, replace = true) {
       case h @ Header(lvl, _, _*) if lvl == toPrepend.level && toPrepend != h => Seq(toPrepend, h)

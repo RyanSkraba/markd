@@ -5,13 +5,13 @@ package com.tinfoiled.markd
   * @param content
   *   the text contents for the paragraph.
   */
-case class Paragraph(content: String) extends Markd {
+case class Paragraph(content: String) extends MarkdNode {
   override def build(sb: StringBuilder = new StringBuilder(), cfg: FormatCfg = FormatCfg.Default): StringBuilder = {
     sb ++= content.trim() ++= "\n"
   }
 
-  /** Transforms this paragraph into another more specific [[Markd]] type if possible.
+  /** Transforms this paragraph into another more specific [[MarkdNode]] type if possible.
     */
-  def refine(): Markd = Table.parse(content).getOrElse(this)
+  def refine(): MarkdNode = Table.parse(content).getOrElse(this)
 
 }

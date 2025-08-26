@@ -15,7 +15,7 @@ import scala.util.Try
   * @param content
   *   the contents of the comment.
   */
-case class Code(code_type: String, content: String) extends Markd {
+case class Code(code_type: String, content: String) extends MarkdNode {
 
   private lazy val builtContent: String = (code_type, content) match {
     case ("json", json) =>

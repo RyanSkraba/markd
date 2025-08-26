@@ -29,7 +29,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
         |""".stripMargin.replace(".", " ")
 
     it("and sort, clean and deduplicate by default") {
-      val md = Doc.parse(linkrefs)
+      val md = Markd.parse(linkrefs)
       val cleaned = md.build().toString
       cleaned shouldBe
         """[all]: all "all"
@@ -49,7 +49,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
           |[url-postws]: url-postws
           |[url-prews]: url-prews
           |""".stripMargin
-      Doc.parse(cleaned) shouldBe md
+      Markd.parse(cleaned) shouldBe md
     }
 
     it("should escape and unescape link titles correctly") {
@@ -64,10 +64,10 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
           |[h]: "Quo\\th \""
           |""".stripMargin
       // The round trip shouldn't change the text at all
-      val md = Doc.parse(linkRefTitles)
+      val md = Markd.parse(linkRefTitles)
       val cleaned = md.build().toString
       cleaned shouldBe linkRefTitles
-      Doc.parse(cleaned) shouldBe md
+      Markd.parse(cleaned) shouldBe md
 
       // But shouldParse
       md.mds should have size 8
@@ -82,7 +82,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
     }
 
     it("but allow leaving unsorted and undeduplicated") {
-      val md = Doc.parse(linkrefs, cfg = new ParserCfg(sortLinkRefs = false))
+      val md = Markd.parse(linkrefs, cfg = new ParserCfg(sortLinkRefs = false))
 
       val cleaned = md.build().toString
       cleaned shouldBe
@@ -106,7 +106,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
           |[all-empty-title]: all-empty-title
           |""".stripMargin
 
-      Doc.parse(cleaned, cfg = new ParserCfg(sortLinkRefs = false)) shouldBe md
+      Markd.parse(cleaned, cfg = new ParserCfg(sortLinkRefs = false)) shouldBe md
       md.mds should have size 18
       md.mds.head shouldBe LinkRef("ref-bare", None, None)
       md.mds(1) shouldBe LinkRef("dup", "dup")
@@ -129,7 +129,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
     }
 
     it("should ignore non-linkref") {
-      val md = Doc.parse("""
+      val md = Markd.parse("""
         |[url]: url
         | [space-before]: Leading space?  Not a link ref
         |""".stripMargin.replace(".", " "))
@@ -141,7 +141,7 @@ class LinkRefSpec extends AnyFunSpecLike with Matchers {
         |[url]: url
         |""".stripMargin
       // TODO: The round-trip is still broken because of cleaning up whitespace.
-      // Doc.parse(cleaned) shouldBe md
+      // Markd.parse(cleaned) shouldBe md
 
       md.mds should have size 2
       md.mds.head shouldBe Paragraph("[space-before]: Leading space?  Not a link ref")

@@ -4,17 +4,17 @@ import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[MultiMarkd]] elements
+/** Unit tests for [[MarkdContainer]] nodes
   */
-class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
-  describe("Replacing subelements") {
-    val md: Doc = Doc.parse("""
+class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
+  describe("Replacing children") {
+    val md: Markd = Markd.parse("""
         |# One
         |# Two
         |# Three
         |""".stripMargin)
 
-    describe("replacing a match one-to-one with another element") {
+    describe("replacing a match one-to-one with another node") {
       it("should replace all matches") {
         md.replaceIn() {
           case (Some(h @ Header(1, title, _*)), _) if title.startsWith("T") => Seq(h.copy(title = h.title.toUpperCase))
@@ -163,7 +163,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
           Header(1, "Four")
         )
       }
-      it("should remove all but the element when filtering") {
+      it("should remove all but the node when filtering") {
         md.replaceIn(filter = true) { case (None, _) => Seq(Header(1, "Four")) }.mds shouldBe Seq(Header(1, "Four"))
       }
     }
@@ -177,7 +177,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
           Header(1, "Three")
         )
       }
-      it("should remove all but the element and the head when filtering") {
+      it("should remove all but the node and the head when filtering") {
         md.replaceIn(filter = true) { case (Some(md), 0) => Seq(Header(1, "Zero"), md) }.mds shouldBe Seq(
           Header(1, "Zero"),
           Header(1, "One")
@@ -186,7 +186,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
     }
 
     describe("when prepending to a section header") {
-      it("should put the new section after any existing elements") {
+      it("should put the new section after any existing nodes") {
         // For a top level header
         Header(0, "A1").prepend("B1") shouldBe Header(0, "A1", Header(1, "B1"))
         Header(0, "A1", Comment("HI")).prepend("B1") shouldBe Header(0, "A1", Comment("HI"), Header(1, "B1"))
@@ -213,7 +213,7 @@ class MultiMarkdSpec extends AnyFunSpecLike with Matchers {
 
     describe("in a complicated internal match") {
 
-      val md: Doc = Doc.parse("""
+      val md: Markd = Markd.parse("""
           !One
           !==============================================================================
           !

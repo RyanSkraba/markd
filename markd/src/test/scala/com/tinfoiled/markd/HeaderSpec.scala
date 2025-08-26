@@ -15,9 +15,9 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |# French
           |Bonjour tout le monde
           |""".stripMargin
-      val md = Doc.parse(txt)
+      val md = Markd.parse(txt)
       md.mds should have size 2
-      md shouldBe Doc(
+      md shouldBe Markd(
         Header(1, "English", Paragraph("Hello world")),
         Header(1, "French", Paragraph("Bonjour tout le monde"))
       )
@@ -34,11 +34,11 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |
           |Bonjour tout le monde
           |""".stripMargin
-      Doc.parse(cleaned) shouldBe md
+      Markd.parse(cleaned) shouldBe md
     }
 
     it("should nicely nest sections ") {
-      val md = Doc.parse("""
+      val md = Markd.parse("""
           |### Three
           |## Two
           |# One
@@ -62,11 +62,11 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |
           |### Three
           |""".stripMargin
-      Doc.parse(cleaned) shouldBe md
+      Markd.parse(cleaned) shouldBe md
     }
 
     it("should separate into headers and links") {
-      val md = Doc.parse("""
+      val md = Markd.parse("""
           |outside
           |[refout]: https://www.refout.com
           |# header1
@@ -136,7 +136,7 @@ class HeaderSpec extends AnyFunSpecLike with Matchers {
           |
           |[ref2b]: https://www.ref2b.com
           |""".stripMargin
-      Doc.parse(cleaned) shouldBe md
+      Markd.parse(cleaned) shouldBe md
 
       md.mds should have size 4
       md.mds.head shouldBe Paragraph("outside")

@@ -9,7 +9,7 @@ package com.tinfoiled
   * {{{
   * files
   *   .foreach(f => {
-  *     val md = Doc.parse(f.slurp())
+  *     val md = Markd.parse(f.slurp())
   *     f.writeAll(md.build().toString)
   *   })
   * }}}
@@ -36,9 +36,9 @@ package object markd {
       links.map(linkSorter().orElse { case lr => (lr.ref, lr) }).toMap.toSeq.sortBy(_._1).map(_._2)
     } else links
 
-    /** Apply this configuration to an element, reparsing it as a clean model.
+    /** Apply this configuration to a node, reparsing it as a clean model.
       */
-    def clean(md: Markd, cfg: FormatCfg = FormatCfg.Default): Doc = Doc.parse(md.build().toString, this)
+    def clean(md: MarkdNode, cfg: FormatCfg = FormatCfg.Default): Markd = Markd.parse(md.build().toString, this)
   }
 
   /** Helps write the model to the output. */

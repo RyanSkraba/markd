@@ -25,7 +25,7 @@ object Align extends Enumeration {
   * @param mds
   *   The table rows, including the column headers (as the first row) and cell values (all subsequent rows).
   */
-case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MultiMarkd[TableRow] {
+case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MarkdContainer[TableRow] {
 
   type Self = Table
 
@@ -221,7 +221,7 @@ object Table {
       case AlignmentCellRegex(_) => Some(Align.LEFT)
       case _                     => None
     }
-    // If the alignment row removed any elements, then this is not a Table
+    // If the alignment row removed any columns, then this is not a Table
     if (aligns.length < lines(1).length) return None
 
     val rows = lines.patch(1, Seq.empty, 1).map(_.map(_.trim)).map(TableRow.apply)
@@ -241,7 +241,7 @@ object Table {
   }
 }
 
-case class TableRow(cells: Seq[String]) extends Markd {
+case class TableRow(cells: Seq[String]) extends MarkdNode {
 
   /** The row header is the leftmost cell. */
   lazy val head: String = cells.headOption.getOrElse("")
@@ -251,7 +251,7 @@ case class TableRow(cells: Seq[String]) extends Markd {
   def updated(i: Int, c: String): TableRow =
     copy(cells = cells.padTo(i + 1, "").updated(i, c).reverse.dropWhile(_.isEmpty).reverse)
 
-  /** Write this element to the builder.
+  /** Write this node to the builder.
     *
     * @param sb
     *   The builder to write to.

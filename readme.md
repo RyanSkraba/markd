@@ -69,12 +69,12 @@ val txt = {
 }
 
 // Parse it into a structure
-val md: Header = Doc.parse(txt)
+val md: Header = Markd.parse(txt)
 
-// This gives this structure, note that the Header(0) contains the whole 
-// document, which is composed of two top-level headers, each containing one
-// paragraph
-val result = Doc(
+// This gives this structure: Markd is an "invisible" top level node that
+// contains all the whole document, which is composed of two top-level 
+// headers, each containing one paragraph
+val result = Markd(
   Header("English", 1, List(Paragraph("Hello world"))),
   Header("French", 1, List(Paragraph("Bonjour tout le monde")))
 )
