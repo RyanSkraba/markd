@@ -1,6 +1,9 @@
 package com.tinfoiled.markd
 
-/** A markdown node that can contain other nodes. */
+/** A markdown node that can contain other nodes.
+  *
+  * The methods in this class can be used to search children elements, or return new instances with modified children.
+  */
 trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
 
   type Self <: MarkdContainer[T]
@@ -41,18 +44,31 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
     */
   def copyMds(newMds: Seq[T]): Self
 
-  /** Create a copy of the list of children, replacing some as necessary.
+  /** Create a copy, potentially replacing some children via a partial function. The partial function has two arguments,
+    * including the index. It can match by child node type or by position in the list (including the end position, which
+    * is represented by a child node that is None).
     *
-    * A partial function matches and replaces MarkdNode in the children. If the partial function is defined for one of
-    * the children, it supplies the list of replacements. It matches on the node (or None to match the end of the list)
-    * and its index.
+    * {{{
+    * val replaced = table.replaceIn() {
+    *   // Leave the header row the same (always row 0)
+   *    case (Some(header), 0)                 => Seq(header)
+   *    // Any rows with "1" in the first cell should be deleted
+   *    case (Some(TableRow(Seq("1", _*))), _) => Seq.empty
+   *    // Every other row is doubled
+   *    case (Some(row), _)                    => Seq(row, row)
+   *    // And we add a new last row.
+   *    case (None, _)                         => Seq(TableRow.from("END"))
+   *  }
+    * }}}
+    *
+    * If the partial function is defined for one of the children and index, it supplies the list of replacements.
     *
     * @param filter
-    *   True if non-matching children should be removed, false to leave non-matching elements unchanged.
+    *   True if non-matching children should be removed, by default false to leave non-matching elements unchanged.
     * @param pf
-    *   A partial function to replace markd elements.
+    *   A partial function to replace markd nodes.
     * @return
-    *   A copy of this [[MarkdContainer]] with the replaced subelements
+    *   A copy of this [[MarkdContainer]] with the partial function applied to the children.
     */
   def replaceIn(filter: Boolean = false)(pf: PartialFunction[(Option[T], Int), Seq[T]]): Self = {
     // Elements undefined by the partial function should either be filtered from the results

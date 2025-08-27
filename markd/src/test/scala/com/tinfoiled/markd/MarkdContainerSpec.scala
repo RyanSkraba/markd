@@ -7,6 +7,7 @@ import org.scalatest.matchers.should.Matchers
 /** Unit tests for [[MarkdContainer]] nodes
   */
 class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
+
   describe("Replacing children") {
     val md: Markd = Markd.parse("""
         |# One
@@ -333,5 +334,41 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
             !""".stripMargin('!')
       }
     }
+  }
+
+  describe("Scaladoc examples") {
+
+    val table = Table
+      .parse("""ID | Name
+               !---|----
+               !1  | One
+               !2  | Two
+               !3  | Three
+               !""".stripMargin('!'))
+      .value
+
+    it("for replaceIn") {
+      val replaced = table.replaceIn() {
+        // Leave the header row the same (always row 0)
+        case (Some(header), 0)                 => Seq(header)
+        // Any rows with "1" in the first cell should be deleted
+        case (Some(TableRow(Seq("1", _*))), _) => Seq.empty
+        // Every other row is doubled
+        case (Some(row), _)                    => Seq(row, row)
+        // And we add a new last row.
+        case (None, _)                         => Seq(TableRow.from("END"))
+      }
+
+      replaced.build().toString shouldBe
+        """| ID  | Name  |
+          !|-----|-------|
+          !| 2   | Two   |
+          !| 2   | Two   |
+          !| 3   | Three |
+          !| 3   | Three |
+          !| END |       |
+          !""".stripMargin('!')
+    }
+
   }
 }
