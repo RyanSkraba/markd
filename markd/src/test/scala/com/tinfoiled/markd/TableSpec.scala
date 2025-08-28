@@ -40,25 +40,25 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       md.title shouldBe "A"
       md.colSize shouldBe 3
       md.rowSize shouldBe 7
-      md(0) shouldBe TableRow.from("A", "B", "A")
-      md(1) shouldBe TableRow.from("a", "b1", "c1")
-      md(2) shouldBe TableRow.from("a2", "b2", "c2")
-      md(3) shouldBe TableRow.from("a", "b3", "c3")
-      md(4) shouldBe TableRow.from("a4", "b4")
-      md(5) shouldBe TableRow.from("", "b5")
-      md(6) shouldBe TableRow.from()
+      md(0) shouldBe TableRow("A", "B", "A")
+      md(1) shouldBe TableRow("a", "b1", "c1")
+      md(2) shouldBe TableRow("a2", "b2", "c2")
+      md(3) shouldBe TableRow("a", "b3", "c3")
+      md(4) shouldBe TableRow("a4", "b4")
+      md(5) shouldBe TableRow("", "b5")
+      md(6) shouldBe TableRow()
       // There's no way to distinguish from a TableRow that actually exists in
       // the table, and one that is out of range
-      md(100) shouldBe TableRow.from()
-      md(-1) shouldBe TableRow.from()
+      md(100) shouldBe TableRow()
+      md(-1) shouldBe TableRow()
 
       // Get a row by name
-      md("A") shouldBe TableRow.from("A", "B", "A")
-      md("a") shouldBe TableRow.from("a", "b1", "c1")
-      md("a2") shouldBe TableRow.from("a2", "b2", "c2")
-      md("a4") shouldBe TableRow.from("a4", "b4")
-      md("") shouldBe TableRow.from("", "b5")
-      md("no-exist") shouldBe TableRow.from()
+      md("A") shouldBe TableRow("A", "B", "A")
+      md("a") shouldBe TableRow("a", "b1", "c1")
+      md("a2") shouldBe TableRow("a2", "b2", "c2")
+      md("a4") shouldBe TableRow("a4", "b4")
+      md("") shouldBe TableRow("", "b5")
+      md("no-exist") shouldBe TableRow()
       // There's no way to get the row with the duplicate head by name, only
       // by index
 
@@ -121,14 +121,14 @@ class TableSpec extends AnyFunSpecLike with Matchers {
               !""".stripMargin('!'))
         .value
 
-      val tb1 = TableRow.from("1", "One")
-      val tb2 = TableRow.from("2")
-      val tb3 = TableRow.from()
+      val tb1 = TableRow("1", "One")
+      val tb2 = TableRow("2")
+      val tb3 = TableRow()
 
       md.title shouldBe "Id"
       md.colSize shouldBe 2
       md.rowSize shouldBe 4
-      md shouldBe Table.from(Seq(Align.LEFT, Align.LEFT), TableRow.from("Id", "Name"), tb1, tb2, tb3)
+      md shouldBe Table.from(Seq(Align.LEFT, Align.LEFT), TableRow("Id", "Name"), tb1, tb2, tb3)
 
       // Verify the shortcut to the head
       tb1.head shouldBe "1"
@@ -147,12 +147,12 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       tb3(2) shouldBe empty
 
       // Verify the shortcut to the cell update
-      tb1.updated(0, "Un") shouldBe TableRow.from("Un", "One")
-      tb1.updated(1, "Un") shouldBe TableRow.from("1", "Un")
-      tb1.updated(2, "Un") shouldBe TableRow.from("1", "One", "Un")
-      tb1.updated(4, "Un") shouldBe TableRow.from("1", "One", "", "", "Un")
-      tb1.updated(0, "") shouldBe TableRow.from("", "One")
-      tb1.updated(1, "") shouldBe TableRow.from("1")
+      tb1.updated(0, "Un") shouldBe TableRow("Un", "One")
+      tb1.updated(1, "Un") shouldBe TableRow("1", "Un")
+      tb1.updated(2, "Un") shouldBe TableRow("1", "One", "Un")
+      tb1.updated(4, "Un") shouldBe TableRow("1", "One", "", "", "Un")
+      tb1.updated(0, "") shouldBe TableRow("", "One")
+      tb1.updated(1, "") shouldBe TableRow("1")
     }
 
     it("should clean up a simple table") {
@@ -172,10 +172,10 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       md.mds.head shouldBe Paragraph("Before")
       md.mds(1) shouldBe Table.from(
         Seq(Align.LEFT, Align.LEFT),
-        TableRow.from("Id", "Name"),
-        TableRow.from("[1](https://en.wikipedia.org/wiki/1)", "One"),
-        TableRow.from("2", "Two"),
-        TableRow.from("3", "Three")
+        TableRow("Id", "Name"),
+        TableRow("[1](https://en.wikipedia.org/wiki/1)", "One"),
+        TableRow("2", "Two"),
+        TableRow("3", "Three")
       )
       md.mds(2) shouldBe Paragraph("After")
 
@@ -211,10 +211,10 @@ class TableSpec extends AnyFunSpecLike with Matchers {
           Align.RIGHT,
           Align.RIGHT
         ),
-        TableRow.from("Id1", "Id2", "Id3", "Name"),
-        TableRow.from("1", "1", "1", "One"),
-        TableRow.from("22", "22", "22", "Two"),
-        TableRow.from("333", "333", "333", "Three")
+        TableRow("Id1", "Id2", "Id3", "Name"),
+        TableRow("1", "1", "1", "One"),
+        TableRow("22", "22", "22", "Two"),
+        TableRow("333", "333", "333", "Three")
       )
 
       val cleaned = md.build().toString

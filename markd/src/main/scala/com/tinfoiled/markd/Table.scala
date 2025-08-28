@@ -48,7 +48,7 @@ case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MarkdContainer[
     * @return
     *   The row, or an empty row if the index is out of bounds.
     */
-  def apply(row: Int): TableRow = mds.applyOrElse(row, (_: Int) => TableRow.from())
+  def apply(row: Int): TableRow = mds.applyOrElse(row, (_: Int) => TableRow())
 
   /** @param rowHead
     *   The row to get from the table by matching the first cell, including the header row.
@@ -136,8 +136,8 @@ case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MarkdContainer[
         .reverse
 
     val rowsUpdated = mds
-      .padTo(row + 1, TableRow.from())
-      .updated(row, new TableRow(cellsUpdated))
+      .padTo(row + 1, TableRow())
+      .updated(row, new TableRow(cellsUpdated: _*))
 
     Table(
       if (row == 0) aligns.padTo(column + 1, Align.LEFT) else aligns,
@@ -241,7 +241,7 @@ object Table {
   }
 }
 
-case class TableRow(cells: Seq[String]) extends MarkdNode {
+case class TableRow(cells: String*) extends MarkdNode {
 
   /** The row header is the leftmost cell. */
   lazy val head: String = cells.headOption.getOrElse("")
@@ -249,7 +249,7 @@ case class TableRow(cells: Seq[String]) extends MarkdNode {
   def apply(i: Int): String = cells.applyOrElse(i, (_: Int) => "")
 
   def updated(i: Int, c: String): TableRow =
-    copy(cells = cells.padTo(i + 1, "").updated(i, c).reverse.dropWhile(_.isEmpty).reverse)
+    TableRow(cells = cells.padTo(i + 1, "").updated(i, c).reverse.dropWhile(_.isEmpty).reverse: _*)
 
   /** Write this node to the builder.
     *
@@ -283,10 +283,4 @@ case class TableRow(cells: Seq[String]) extends MarkdNode {
     sb ++= aligned.mkString("| ", " | ", " |")
     sb ++= "\n"
   }
-}
-
-object TableRow {
-
-  /** Shortcut method just for the varargs */
-  def from(cells: String*): TableRow = TableRow(cells)
 }

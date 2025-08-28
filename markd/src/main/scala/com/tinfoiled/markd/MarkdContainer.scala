@@ -51,14 +51,14 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
     * {{{
     * val replaced = table.replaceIn() {
     *   // Leave the header row the same (always row 0)
-   *    case (Some(header), 0)                 => Seq(header)
-   *    // Any rows with "1" in the first cell should be deleted
-   *    case (Some(TableRow(Seq("1", _*))), _) => Seq.empty
-   *    // Every other row is doubled
-   *    case (Some(row), _)                    => Seq(row, row)
-   *    // And we add a new last row.
-   *    case (None, _)                         => Seq(TableRow.from("END"))
-   *  }
+    *    case (Some(header), 0)                 => Seq(header)
+    *    // Any rows with "1" in the first cell should be deleted
+    *    case (Some(TableRow(Seq("1", _*))), _) => Seq.empty
+    *    // Every other row is doubled
+    *    case (Some(row), _)                    => Seq(row, row)
+    *    // And we add a new last row.
+    *    case (None, _)                         => Seq(TableRow("END"))
+    *  }
     * }}}
     *
     * If the partial function is defined for one of the children and index, it supplies the list of replacements.

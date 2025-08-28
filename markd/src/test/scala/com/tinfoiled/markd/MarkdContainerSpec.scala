@@ -247,8 +247,7 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
           case weekly @ Header(1, title, _*) if title.startsWith("Two") =>
             weekly.mapFirstIn() {
               // Matches the B1 table and updates it with our new table
-              case tb @ Table(_, Seq(TableRow(Seq(tableName: String, _*)), _*)) if tableName == "B1" =>
-                tb.updated(1, 1, "X")
+              case tb: Table if tb.title == "B1" => tb.updated(1, 1, "X")
             }
         }
 
@@ -307,7 +306,7 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
       }
 
       it("should replace table rows recursively") {
-        val replaced = md.replaceRecursively { case row: TableRow if row.head == "B1" => TableRow.from("C1", "C2") }
+        val replaced = md.replaceRecursively { case row: TableRow if row.head == "B1" => TableRow("C1", "C2") }
 
         replaced.build().toString shouldBe
           """One
@@ -350,13 +349,13 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
     it("for replaceIn") {
       val replaced = table.replaceIn() {
         // Leave the header row the same (always row 0)
-        case (Some(header), 0)                 => Seq(header)
+        case (Some(header), 0) => Seq(header)
         // Any rows with "1" in the first cell should be deleted
-        case (Some(TableRow(Seq("1", _*))), _) => Seq.empty
+        case (Some(TableRow("1", _*)), _) => Seq.empty
         // Every other row is doubled
-        case (Some(row), _)                    => Seq(row, row)
+        case (Some(row), _) => Seq(row, row)
         // And we add a new last row.
-        case (None, _)                         => Seq(TableRow.from("END"))
+        case (None, _) => Seq(TableRow("END"))
       }
 
       replaced.build().toString shouldBe
@@ -369,6 +368,5 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
           !| END |       |
           !""".stripMargin('!')
     }
-
   }
 }
