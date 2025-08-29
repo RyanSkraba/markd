@@ -339,11 +339,11 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
 
     val table = Table
       .parse("""ID | Name
-               !---|----
-               !1  | One
-               !2  | Two
-               !3  | Three
-               !""".stripMargin('!'))
+          !---|----
+          !1  | One
+          !2  | Two
+          !3  | Three
+          !""".stripMargin('!'))
       .value
 
     it("for replaceIn") {
@@ -366,6 +366,22 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
           !| 3   | Three |
           !| 3   | Three |
           !| END |       |
+          !""".stripMargin('!')
+    }
+
+    it("for flatMapFirstIn") {
+      // Add 1 to the first column where the second column is "Count" (adding the row if necessary)
+      val replaced = table.flatMapFirstIn(ifNotFound = Seq(TableRow("0", "Count"))) { case TableRow(id, "Count") =>
+        Seq(TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count"))
+      }
+
+      replaced.build().toString shouldBe
+        """| ID | Name  |
+          !|----|-------|
+          !| 1  | One   |
+          !| 2  | Two   |
+          !| 3  | Three |
+          !| 1  | Count |
           !""".stripMargin('!')
     }
   }

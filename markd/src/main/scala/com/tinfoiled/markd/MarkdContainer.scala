@@ -44,9 +44,9 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
     */
   def copyMds(newMds: Seq[T]): Self
 
-  /** Create a copy, potentially replacing some children via a partial function. The partial function has two arguments,
-    * including the index. It can match by child node type or by position in the list (including the end position, which
-    * is represented by a child node that is None).
+  /** Copies this node, potentially replacing some children via a partial function. The partial function has two
+    * arguments, including the index. It can match by child node type or by position in the list (including the end
+    * position, which is represented by a child node that is None).
     *
     * {{{
     * val replaced = table.replaceIn() {
@@ -84,22 +84,33 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
     )
   }
 
-  /** Copies this node, but flatMapping the first matching subelement to new values.
+  /** Copies this node, potentially replacing the first matching child via a partial function. Unlike [[replaceIn()]],
+    * the partial function does not take into account any child indexes.
     *
-    * A partial function matches and replaces Markd subelements. If the partial function is defined for one of the
-    * subelements, it supplies the list of replacements.
+    * Some additional behaviour can be defined when no matching child is found:
+    *
+    *   - If {{replace}} is false, the list of nodes returned by {{ifNotFound}} will be appended to the children, and
+    *     the replacement will be retried. By default, this list is empty, so the returned node will be unchanged.
+    *   - If {{replace}} is true, the list of nodes returned by {{ifNotFound}} will replace the children, and the
+    *     replacement will be retried. By default, this list is empty, so the returned node will have no children.
+    *
+    * {{{
+    * // Add 1 to the first column where the second column is "Count" (adding the row if necessary)
+    * val replaced = table.flatMapFirstIn(ifNotFound = Seq(TableRow("0", "Count"))) { case TableRow(id, "Count") =>
+    *   Seq(TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count"))
+    * }
+    * }}}
     *
     * @param ifNotFound
-    *   If nothing is matched, add these elements to the end of the list and try again. This permits insert-and-update
+    *   If nothing is matched, add these nodes to the end of the list and try again. This permits insert-and-update
     *   replacements in the children.
     * @param replace
-    *   If true, when falling back on ifNotFound, then replace all of the children instead of appending the new elements
-    *   when trying again. This can be used to control the modification of the new elements, such as prepending or
-    *   filtering.
+    *   If true, when falling back on ifNotFound, then replace all the children instead of appending the new nodes when
+    *   trying again. This can be used to control the modification of the new nodes, such as prepending or filtering.
     * @param pf
-    *   A partial function to replace markd elements.
+    *   A partial function to replace markd nodes.
     * @return
-    *   A copy of this [[MarkdContainer]] with the replaced subelements
+    *   A copy of this [[MarkdContainer]] with the replaced child node
     */
   def flatMapFirstIn(ifNotFound: => Seq[T] = Seq.empty, replace: Boolean = false)(
       pf: PartialFunction[T, Seq[T]]
