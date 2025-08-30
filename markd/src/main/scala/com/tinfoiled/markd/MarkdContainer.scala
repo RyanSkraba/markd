@@ -131,22 +131,28 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
     )
   }
 
-  /** Copies this element, but mapping the first matching subelement to a new value.
+  /** Copies this node, potentially replacing the first matching child with a new value via a partial function.
     *
-    * A partial function matches and replaces Markd subelements. If the partial function is defined for one of the
-    * subelements, it supplies the replacements.
+    * This has the same behaviour as [[flatMapFirstIn()]] if no matching child is found: a new set of children nodes can
+    * be appended to, or replace the existing set and the replacement is retried once.
+    *
+    * {{{
+    * // Add 1 to the first column where the second column is "Count" (adding the row if necessary)
+    * val replaced = table.mapFirstIn(ifNotFound = Seq(TableRow("0", "Count"))) { case TableRow(id, "Count") =>
+    *   TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count")
+    * }
+    * }}}
     *
     * @param ifNotFound
-    *   If nothing is matched, add these elements to the end of the list and try again. This permits insert-and-update
+    *   If nothing is matched, add these nodes to the end of the list and try again. This permits insert-and-update
     *   replacements in the children.
     * @param replace
-    *   If true, when falling back on ifNotFound, then replace all of the children instead of appending the new elements
-    *   when trying again. This can be used to control the modification of the new elements, such as prepending or
-    *   filtering.
+    *   If true, when falling back on ifNotFound, then replace all the children instead of appending the new nodes when
+    *   trying again. This can be used to control the modification of the new nodes, such as prepending or filtering.
     * @param pf
-    *   A partial function to replace markd elements.
+    *   A partial function to replace markd nodes.
     * @return
-    *   A copy of this [[MarkdContainer]] with the replaced subelements
+    *   A copy of this [[MarkdContainer]] with the replaced child node
     */
   def mapFirstIn(ifNotFound: => Seq[T] = Seq.empty, replace: Boolean = false)(pf: PartialFunction[T, T]): Self =
     flatMapFirstIn(ifNotFound = ifNotFound, replace = replace)(pf.andThen(Seq(_)))

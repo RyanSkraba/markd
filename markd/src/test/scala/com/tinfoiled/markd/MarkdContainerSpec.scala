@@ -384,5 +384,21 @@ class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
           !| 1  | Count |
           !""".stripMargin('!')
     }
+
+    it("for mapFirstIn") {
+      // Add 1 to the first column where the second column is "Count" (adding the row if necessary)
+      val replaced = table.mapFirstIn(ifNotFound = Seq(TableRow("0", "Count"))) { case TableRow(id, "Count") =>
+        TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count")
+      }
+
+      replaced.build().toString shouldBe
+        """| ID | Name  |
+          !|----|-------|
+          !| 1  | One   |
+          !| 2  | Two   |
+          !| 3  | Three |
+          !| 1  | Count |
+          !""".stripMargin('!')
+    }
   }
 }
