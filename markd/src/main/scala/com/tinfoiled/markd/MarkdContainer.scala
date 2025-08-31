@@ -157,18 +157,22 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
   def mapFirstIn(ifNotFound: => Seq[T] = Seq.empty, replace: Boolean = false)(pf: PartialFunction[T, T]): Self =
     flatMapFirstIn(ifNotFound = ifNotFound, replace = replace)(pf.andThen(Seq(_)))
 
-  /** Copies this element, but mapping the first matching subelement to a new value.
+  /** Copies this node, potentially replacing the first matching child with a new value via a partial function.
     *
-    * A partial function matches and replaces Markd subelements. If the partial function is defined for one of the
-    * subelements, it supplies the replacements.
+    * This has the same behaviour as the other mapFirstIn method, except the behaviour when no matching child is found;
+    * this method requires a new node to be appended and retried.
+    *
+    * {{ // Add 1 to the first column where the second column is "Count" (adding the row if necessary) val replaced =
+    * table.mapFirstIn(ifNotFound = TableRow("0", "Count")) { case TableRow(id, "Count") =>
+    * TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count") } }}
     *
     * @param ifNotFound
-    *   If nothing is matched, add this element to the end of the list and try again. This permits insert-and-update
+    *   If nothing is matched, add this nodes to the end of the list and try again. This permits insert-and-update
     *   replacements in the children.
     * @param pf
-    *   A partial function to replace markd elements.
+    *   A partial function to replace markd nodes.
     * @return
-    *   A copy of this [[MarkdContainer]] with the replaced subelements
+    *   A copy of this [[MarkdContainer]] with the replaced child node
     */
   def mapFirstIn(ifNotFound: => T)(pf: PartialFunction[T, T]): Self =
     mapFirstIn(ifNotFound = Seq(ifNotFound))(pf)
