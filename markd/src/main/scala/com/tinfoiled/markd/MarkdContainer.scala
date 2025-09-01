@@ -162,9 +162,12 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
     * This has the same behaviour as the other mapFirstIn method, except the behaviour when no matching child is found;
     * this method requires a new node to be appended and retried.
     *
-    * {{ // Add 1 to the first column where the second column is "Count" (adding the row if necessary) val replaced =
-    * table.mapFirstIn(ifNotFound = TableRow("0", "Count")) { case TableRow(id, "Count") =>
-    * TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count") } }}
+    * {{{
+    *  // Add 1 to the first column where the second column is "Count" (adding the row if necessary)
+    *  val replaced = table.mapFirstIn(ifNotFound = TableRow("0", "Count")) { case TableRow(id, "Count") =>
+    * TableRow(id.toIntOption.map(_ + 1).map(_.toString).getOrElse("1"), "Count")
+    * }
+    * }}}
     *
     * @param ifNotFound
     *   If nothing is matched, add this nodes to the end of the list and try again. This permits insert-and-update
@@ -177,7 +180,7 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
   def mapFirstIn(ifNotFound: => T)(pf: PartialFunction[T, T]): Self =
     mapFirstIn(ifNotFound = Seq(ifNotFound))(pf)
 
-  /** Finds the first [[MarkdNode]] element recursively in this element for which the given partial function is defined,
+  /** Finds the first [[MarkdNode]] node recursively in this element for which the given partial function is defined,
     * and applies the partial function to it.
     *
     * @param pf
@@ -198,6 +201,15 @@ trait MarkdContainer[T <: MarkdNode] extends MarkdNode {
         .find(_.isDefined)
         .flatten
 
+  /** Copies this node, potentially replacing the any matching children at any depth with a new value via a partial
+    * function.
+    *
+    * @param pf
+    *   the partial function
+    *
+    * @return
+    *   A copy of this [[MarkdContainer]] with the replaced child nodes
+    */
   def replaceRecursively(pf: PartialFunction[MarkdNode, MarkdNode]): Self = {
     replaceIn() {
       case (Some(md), _) if pf.isDefinedAt(md) => Seq(pf.apply(md).asInstanceOf[T])
