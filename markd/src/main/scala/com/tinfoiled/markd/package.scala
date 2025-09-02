@@ -28,7 +28,7 @@ package object markd {
     /** If sorting, provides a key to use from the linkref, allowing custom grouping and deduplication of the links. The
       * linkref will be sorted and deduplicated based on this key. By default, the [[LinkRef.ref]] is used directly.
       */
-    private def linkSorter(): PartialFunction[LinkRef, (String, LinkRef)] = { case lr => lr.ref -> lr }
+    def linkSorter(): PartialFunction[LinkRef, (String, LinkRef)] = { case lr => lr.ref -> lr }
 
     /** Clean up the references at the end of a section. */
     def linkCleaner(links: Seq[LinkRef]): Seq[LinkRef] = if (sortLinkRefs) {
