@@ -128,7 +128,7 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       md.title shouldBe "Id"
       md.colSize shouldBe 2
       md.rowSize shouldBe 4
-      md shouldBe Table.from(Seq(Align.LEFT, Align.LEFT), TableRow("Id", "Name"), tb1, tb2, tb3)
+      md shouldBe Table(Seq(Align.LEFT, Align.LEFT), TableRow("Id", "Name"), tb1, tb2, tb3)
 
       // Verify the shortcut to the head
       tb1.head shouldBe "1"
@@ -170,7 +170,7 @@ class TableSpec extends AnyFunSpecLike with Matchers {
 
       md.mds should have size 3
       md.mds.head shouldBe Paragraph("Before")
-      md.mds(1) shouldBe Table.from(
+      md.mds(1) shouldBe Table(
         Seq(Align.LEFT, Align.LEFT),
         TableRow("Id", "Name"),
         TableRow("[1](https://en.wikipedia.org/wiki/1)", "One"),
@@ -204,13 +204,8 @@ class TableSpec extends AnyFunSpecLike with Matchers {
           !""".stripMargin('!'))
 
       md.mds should have size 1
-      md.mds.head shouldBe Table.from(
-        Seq(
-          Align.LEFT,
-          Align.CENTER,
-          Align.RIGHT,
-          Align.RIGHT
-        ),
+      md.mds.head shouldBe Table(
+        Seq(Align.LEFT, Align.CENTER, Align.RIGHT, Align.RIGHT),
         TableRow("Id1", "Id2", "Id3", "Name"),
         TableRow("1", "1", "1", "One"),
         TableRow("22", "22", "22", "Two"),

@@ -25,7 +25,7 @@ object Align extends Enumeration {
   * @param mds
   *   The table rows, including the column headers (as the first row) and cell values (all subsequent rows).
   */
-case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MarkdContainer[TableRow] {
+case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[TableRow] {
 
   type Self = Table
 
@@ -109,7 +109,7 @@ case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MarkdContainer[
     sb
   }
 
-  override def copyMds(newMds: Seq[TableRow]): Self = copy(mds = newMds)
+  override def copyMds(newMds: Seq[TableRow]): Self = Table(aligns, newMds: _*)
 
   /** Creates a new table from this one with the given cell value updated. Note that the zeroth row is the column
     * headers.
@@ -137,11 +137,11 @@ case class Table(aligns: Seq[Align], mds: Seq[TableRow]) extends MarkdContainer[
 
     val rowsUpdated = mds
       .padTo(row + 1, TableRow())
-      .updated(row, new TableRow(cellsUpdated: _*))
+      .updated(row, TableRow(cellsUpdated: _*))
 
     Table(
       if (row == 0) aligns.padTo(column + 1, Align.LEFT) else aligns,
-      mds = rowsUpdated
+      mds = rowsUpdated: _*
     )
   }
 
@@ -192,9 +192,6 @@ object Table {
 
   private val AlignmentCellRegex: Regex = raw"^\s*(:-+:|---+|:--+|-+-:)\s*$$".r
 
-  /** Shortcut method just for the varargs */
-  def from(aligns: Seq[Align], mds: TableRow*): Table = Table(aligns, mds)
-
   /** Determines if some content can be reasonably parsed into a [[Table]].
     * @param content
     *   The string contents to parse.
@@ -226,7 +223,7 @@ object Table {
 
     val rows = lines.patch(1, Seq.empty, 1).map(_.map(_.trim)).map(TableRow.apply)
 
-    Some(Table(aligns, rows))
+    Some(Table(aligns, rows: _*))
   }
 
   /** Parses a string into cells, removing all trailing whitespace-only cells.
