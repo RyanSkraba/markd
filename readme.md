@@ -45,7 +45,7 @@ TODO:
 Using Markd
 ------------------------------------------------------------------------------
 
-You can import the library into your project from [maven central](https://central.sonatype.com/artifact/com.tinfoiled/markd):
+You can import the library into your project from [maven central](https://central.sonatype.com/artifact/com.tinfoiled/markd_2.13):
 
 ```xml
 <dependency>
