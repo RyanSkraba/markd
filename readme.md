@@ -97,10 +97,10 @@ French
 Bonjour tout le monde
 ```
 
-Building Markd
+Building
 ------------------------------------------------------------------------------
 
 ```sh
-# Local build running all the tests
-mvn spotless:apply clean install
+# Build, format and run all tests
+mvn spotless:apply clean verify
 ```
