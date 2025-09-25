@@ -3,8 +3,7 @@ package com.tinfoiled.markd
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[Code]]
-  */
+/** Unit tests for [[Code]] */
 class CodeSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing a Code block") {
     it("should find a standalone node") {

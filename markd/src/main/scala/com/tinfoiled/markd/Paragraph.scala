@@ -10,8 +10,7 @@ case class Paragraph(content: String) extends MarkdNode {
     sb ++= content.trim() ++= "\n"
   }
 
-  /** Transforms this paragraph into another more specific [[MarkdNode]] type if possible.
-    */
+  /** Transforms this paragraph into another more specific [[MarkdNode]] type if possible. */
   def refine(): MarkdNode = Table.parse(content).getOrElse(this)
 
 }

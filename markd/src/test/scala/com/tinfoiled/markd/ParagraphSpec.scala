@@ -3,8 +3,7 @@ package com.tinfoiled.markd
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[Paragraph]]
-  */
+/** Unit tests for [[Paragraph]] */
 class ParagraphSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing a Paragraph") {
 

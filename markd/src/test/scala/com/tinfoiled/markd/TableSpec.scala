@@ -4,8 +4,7 @@ import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[Table]] and [[TableRow]]
-  */
+/** Unit tests for [[Table]] and [[TableRow]] */
 class TableSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing a markdown Table") {
 

@@ -36,8 +36,7 @@ package object markd {
       links.map(linkSorter().orElse { case lr => (lr.ref, lr) }).toMap.toSeq.sortBy(_._1).map(_._2)
     } else links
 
-    /** Apply this configuration to a node, reparsing it as a clean model.
-      */
+    /** Apply this configuration to a node, reparsing it as a clean model. */
     def clean(md: MarkdNode, cfg: FormatCfg = FormatCfg.Default): Markd = Markd.parse(md.build().toString, this)
   }
 

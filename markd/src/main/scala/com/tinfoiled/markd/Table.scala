@@ -186,8 +186,7 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
 
 object Table {
 
-  /** Split into cells by |, taking into account escaped pipes but not other constructions.
-    */
+  /** Split into cells by |, taking into account escaped pipes but not other constructions. */
   private val CellRegex: Regex = raw"(?<!\\)\|".r
 
   private val AlignmentCellRegex: Regex = raw"^\s*(:-+:|---+|:--+|-+-:)\s*$$".r
@@ -226,8 +225,7 @@ object Table {
     Some(Table(aligns, rows: _*))
   }
 
-  /** Parses a string into cells, removing all trailing whitespace-only cells.
-    */
+  /** Parses a string into cells, removing all trailing whitespace-only cells. */
   def parseRow(content: String): Seq[String] = {
     val values = CellRegex.pattern.split(content, -1).toSeq
     if (values.last.nonEmpty) values

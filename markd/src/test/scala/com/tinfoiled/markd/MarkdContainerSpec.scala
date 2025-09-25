@@ -4,8 +4,7 @@ import org.scalatest.OptionValues._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[MarkdContainer]] nodes
-  */
+/** Unit tests for [[MarkdContainer]] nodes */
 class MarkdContainerSpec extends AnyFunSpecLike with Matchers {
 
   describe("Replacing children") {

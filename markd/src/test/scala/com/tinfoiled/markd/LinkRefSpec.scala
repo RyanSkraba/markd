@@ -3,8 +3,7 @@ package com.tinfoiled.markd
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[LinkRef]]
-  */
+/** Unit tests for [[LinkRef]] */
 class LinkRefSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing LinkRefs") {
     val linkrefs = """

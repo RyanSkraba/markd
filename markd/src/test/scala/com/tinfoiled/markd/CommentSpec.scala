@@ -3,8 +3,7 @@ package com.tinfoiled.markd
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
-/** Unit tests for [[Comment]]
-  */
+/** Unit tests for [[Comment]] */
 class CommentSpec extends AnyFunSpecLike with Matchers {
   describe("Parsing a Comment") {
     it("should find a standalone node") {
