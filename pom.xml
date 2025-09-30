@@ -27,6 +27,7 @@
 
   <modules>
     <module>markd</module>
+    <module>markdql</module>
   </modules>
 
   <scm>
