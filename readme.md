@@ -51,7 +51,7 @@ You can import the library into your project from [maven central](https://centra
 <dependency>
   <groupId>com.tinfoiled</groupId>
   <artifactId>markd_2.13</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
 </dependency>
 ```
 
