@@ -104,7 +104,7 @@ Using MarkdQL
 |----------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | `One.Two.Three[*]`   | Find the level one header with the name "One", with a subheader named "Two" and a third-level header named "Three" and return its contents. |
 | `Top`                | Find and return the level one header with the title "Top"                                                                                   |
-| `Weekly..2025-02-14` | ❌ Find the level one header with the title "Weekly" and return the first subheader named "2025-02-14" at any level inside                   |
+| `Weekly..2025-02-14` | Find the level one header with the title "Weekly" and return the first subheader named "2025-02-14" at any level inside                     |
 | `..Weekly[0]`        | ❌ Any header with the title "Weekly" and return the first element it contains.                                                              |
 | `Weekly[code][0]`    | ❌ Find the level one header with the title "Weekly" and return the first code block it contains.                                            |
 | `Weekly!To Do`       | ❌ Find the level one header with the title "Weekly" and return the To Do table that it contains.                                            |

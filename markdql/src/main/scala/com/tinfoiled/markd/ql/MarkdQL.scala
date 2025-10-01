@@ -4,15 +4,26 @@ import com.tinfoiled.markd._
 
 import scala.util.matching.Regex
 
+/** Implements a simple query language on Markdown Text. */
 object MarkdQL {
+
+  /** @param query
+    *   The string to query on.
+    * @param md
+    *   The markdown node that starts the query.
+    * @return
+    *   A list of markdown nodes that matches the query string.
+    */
   def query(query: String, md: MarkdNode): Seq[MarkdNode] = {
 
-    val QueryRegex: Regex = raw"^(?<sep>\.*)(?<token>[^.\[]*)(?<rest>(\[(?<index>[^]]+)])?.*)$$".r
+    val QueryRegex: Regex = raw"^(?<sep>\.{0,2})(?<token>[^.\[]*)(?<rest>(\[(?<index>[^]]+)])?.*)$$".r
 
     def queryInternal(in: (String, Seq[MarkdNode])): (String, Seq[MarkdNode]) = in match {
-      case ("[*]", Seq(md: MarkdContainer[_])) => ("", md.mds)
-      case (q, md) if q.head == '.'            => (q.tail, md)
-      case (QueryRegex(sep, token, rest, _*), Seq(h: MarkdContainer[_])) if token.nonEmpty =>
+      case ("[*]", Seq(md: MarkdContainer[_]))   => ("", md.mds)
+      case (QueryRegex(".", "", rest, _, _), md) => (rest, md)
+      case (QueryRegex("..", token, rest, _, _), Seq(h: MarkdContainer[_])) if token.nonEmpty =>
+        (rest, h.collectFirstRecursive { case h @ Header(_, title, _*) if title == token => h }.toSeq)
+      case (QueryRegex("" | ".", token, rest, _, _), Seq(h: MarkdContainer[_])) if token.nonEmpty =>
         (rest, h.mds.collectFirst { case h @ Header(_, title, _*) if title == token => h }.toSeq)
       case _ => sys.error(s"Unrecognized query: $query")
     }
