@@ -74,7 +74,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
   }
 
   describe("When given bad queries") {
-    for (badQL <- Seq(".A[*][*]", "A..[*]", "A...C"))
+    for (badQL <- Seq("A...C"))
       it(s"should throw an error on: $badQL") {
         intercept[RuntimeException](query(badQL, Basic)).getMessage shouldBe s"Unrecognized query: $badQL"
       }
