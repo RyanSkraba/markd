@@ -17,6 +17,13 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       !Hello ABC2
       !## B2
       !Hello AB2
+      !# A2
+      !|To Do | Description
+      !|------|---------
+      !|R1    | D1
+      !|R2    | D2
+      !|R3    | D3
+      !|R4    | D4
       !""".stripMargin('!'))
 
   describe("A Basic MarkdQL query") {
@@ -38,7 +45,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
         query(unmatched, Basic) shouldBe empty
       }
 
-    it("do other queries") {
+    it("should find all contents 'A[*]'") {
       Markd(query("A[*]", Basic): _*).build().toString shouldBe
         """B
           |------------------------------------------------------------------------------
@@ -58,7 +65,9 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
           |
           |Hello AB2
           |""".stripMargin
+    }
 
+    it("should find all contents 'A.B[*]'") {
       Markd(query("A.B[*]", Basic): _*).build().toString shouldBe
         """Hello AB
           |
@@ -71,13 +80,42 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
           |Hello ABC2
           |""".stripMargin
     }
+
+    for (tableQuery <- Seq("A2.!To Do", "..!To Do"))
+      it(s"should find a table: '${tableQuery}'") {
+        Markd(query(tableQuery, Basic): _*).build().toString shouldBe
+          """| To Do | Description |
+          !|-------|-------------|
+          !| R1    | D1          |
+          !| R2    | D2          |
+          !| R3    | D3          |
+          !| R4    | D4          |
+          !""".stripMargin('!')
+      }
+
+    it("should find a table value: '..!To Do[Description,R2]") {
+      query("..!To Do[Description,R2]", Basic) shouldBe List(Paragraph("D2"))
+    }
+
+    it("should not find a table value: '..!To Do[X,R2]") {
+      // TODO: Should this distinguish between empty and not found?
+      query("..!To Do[X,R2]", Basic) shouldBe List(Paragraph(""))
+    }
+
+    it("should not find a table value: '..!To Do[Description,X]") {
+      // TODO: Should this distinguish between empty and not found?
+      query("..!To Do[Description,X]", Basic) shouldBe List(Paragraph(""))
+    }
   }
 
+  // A[*][*]
+  // ..[*]
+  // ..C..[*]
+  // ..!To Do[rowonly]
   describe("When given bad queries") {
     for (badQL <- Seq("A...C"))
       it(s"should throw an error on: $badQL") {
         intercept[RuntimeException](query(badQL, Basic)).getMessage shouldBe s"Unrecognized query: $badQL"
       }
   }
-
 }

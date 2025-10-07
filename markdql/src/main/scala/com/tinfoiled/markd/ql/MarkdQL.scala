@@ -2,19 +2,24 @@ package com.tinfoiled.markd.ql
 
 import com.tinfoiled.markd._
 
+import scala.annotation.unused
 import scala.util.matching.Regex
 
 /** Implements a simple query language on Markdown text.
   *
   * Examples:
   *
-  * \| Query | Description \|:---------------------|:----------------------- \| `One.Two.Three[*]` | **Find** the level
-  * one header with the name "One", with a subheader named "Two" and a third-level header named "Three" and return its
-  * contents. \| `Top` | Find and return the level one header with the title "Top" \| `Weekly..2025-02-14` | Find the
-  * level one header with the title "Weekly" and return the first subheader named "2025-02-14" at any level inside \|
-  * `..Weekly[0]` | ❌ Any header with the title "Weekly" and return the first element it contains. \| `Weekly[code][0]`
-  * \| ❌ Find the level one header with the title "Weekly" and return the first code block it contains. \| `Weekly!To
-  * Do` | ❌ Find the level one header with the title "Weekly" and return the To Do table that it contains.
+  * {{{
+  * | Query | Description
+  * |:---------------------|:-----------------------
+  * | `One.Two.Three[*]`   | **Find** the level one header with the name "One", with a subheader named "Two" and a third-level header named "Three" and return its contents.
+  * | `Top`                | Find and return the level one header with the title "Top"
+  * | `Weekly..2025-02-14` | Find the level one header with the title "Weekly" and return the first subheader named "2025-02-14" at any level inside
+  * | `Weekly.!To Do`      | Find the level one header with the title "Weekly" and return the To Do table that it contains.
+  * | `Weekly.!To Do[y,x]` | In the table found above, look for the row with "x" as it's first element, and return the value in the "y" column (according to the table headers).
+  * | `..Weekly[0]`        | ❌ Any header with the title "Weekly" and return the first element it contains.
+  * | `Weekly[code][0]`    | ❌ Find the level one header with the title "Weekly" and return the first code block it contains.
+  * }}}
   */
 object MarkdQL {
 
@@ -50,15 +55,22 @@ object MarkdQL {
       lazy val next: Query = {
         val tokenMatch: Seq[MarkdNode] = this match {
           case Query(md, "" | ".", "", _, _) => md
-          case Query(Seq(md: MarkdContainer[_]), "..", token, _, _) =>
-            md.collectFirstRecursive { case h @ Header(_, title, _*) if title == token => h }.toSeq
+          case Query(Seq(md: MarkdContainer[_]), "" | ".", token, _, _) if token.startsWith("!") =>
+            md.mds.collectFirst { case tbl: Table if tbl.title == token.tail => tbl }.toSeq
+          case Query(Seq(md: MarkdContainer[_]), "..", token, _, _) if token.startsWith("!") =>
+            md.collectFirstRecursive { case tbl: Table if tbl.title == token.tail => tbl }.toSeq
           case Query(Seq(md: MarkdContainer[_]), "" | ".", token, _, _) =>
             md.mds.collectFirst { case h @ Header(_, title, _*) if title == token => h }.toSeq
+          case Query(Seq(md: MarkdContainer[_]), "..", token, _, _) =>
+            md.collectFirstRecursive { case h @ Header(_, title, _*) if title == token => h }.toSeq
         }
 
         (index, tokenMatch) match {
           case ("*", Seq(mdx: MarkdContainer[_])) => Query(mdx.mds, rest)
-          case _                                  => Query(tokenMatch, rest)
+          case (q, Seq(tbl: Table)) if q.contains(',') =>
+            val (column, row) = q.span(_ != ',')
+            Query(Seq(Paragraph(tbl.apply(column, row.tail))), rest)
+          case _ => Query(tokenMatch, rest)
         }
       }
     }
