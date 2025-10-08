@@ -24,6 +24,13 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       !|R2    | D2
       !|R3    | D3
       !|R4    | D4
+      !# Find me [it's "complicated"]
+      !## Simple
+      !Found
+      !## Table
+      !| "Price" | In[
+      !|------|---------
+      !|\]\\  | Found
       !""".stripMargin('!'))
 
   describe("A Basic MarkdQL query") {
@@ -105,6 +112,10 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     it("should not find a table value: '..!To Do[Description,X]") {
       // TODO: Should this distinguish between empty and not found?
       query("..!To Do[Description,X]", Basic) shouldBe List(Paragraph(""))
+    }
+
+    it("should find a header with quotes and square brackets") {
+      query("""."Find me [it's \"complicated\"]".Simple[*]""", Basic) shouldBe List(Paragraph("Found"))
     }
   }
 
