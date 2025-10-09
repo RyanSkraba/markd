@@ -1,7 +1,6 @@
 package com.tinfoiled.markd.ql
 
 import com.tinfoiled.markd._
-import com.tinfoiled.markd.ql.MarkdQL.query
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
 
@@ -30,30 +29,96 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       !## Table
       !| "Price" | In[
       !|------|---------
-      !|\]\\  | Found
+      !|\]\\  | Cell
       !""".stripMargin('!'))
+
+  /** Successful internal parsing test. This is helpful especially for debugging, but uses the exposed internals in
+    * MarkdQL.
+    * @param param
+    *   The query string and the expected separator, token, index and rest
+    */
+  def itShouldParse(param: (String, (String, String, String, String))): Unit = {
+    val (query, expected) = param
+    it(s"should successfully parse: $query") {
+      val q = MarkdQL.Query(query)
+      (q.separator, q.token, q.index, q.rest) shouldBe expected
+    }
+  }
+
+  /** Tests for failed internal parsing.
+    * @param query
+    *   The invalid query string
+    */
+  def itShouldFailToParse(query: String): Unit = {
+    it(s"should fail to parse: $query") {
+      intercept[RuntimeException](MarkdQL.query(query, Basic)).getMessage shouldBe s"Unrecognized query: $query"
+    }
+  }
+
+  /** Tests for a successful query.
+    * @param param
+    *   The query string and the incoming node, and the expected result nodes
+    */
+  def itShouldQuery(param: ((String, MarkdNode), Seq[MarkdNode])): Unit = {
+    val ((query, md), expected) = param
+    val qualifier = expected match {
+      case Seq()               => " (no match)"
+      case Seq(Paragraph(txt)) => s" (found '$txt')"
+      case _                   => ""
+    }
+
+    it(s"should query: $query$qualifier") { MarkdQL.query(query, md) shouldBe expected }
+  }
+
+  /** Tests for a successful query with one result.
+    * @param param
+    *   The query string and the incoming node, and a single expected result node
+    */
+  def itShouldQuery1(param: ((String, MarkdNode), MarkdNode)): Unit = itShouldQuery(param._1 -> Seq(param._2))
+
+  /** Tests for a successful query with one paragraph result.
+    * @param param
+    *   The query string and the incoming node, and a single expected string
+    */
+  def itShouldQueryTxt(param: ((String, MarkdNode), String)): Unit = itShouldQuery(
+    param._1 -> Seq(Paragraph(param._2))
+  )
+
+  /** Tests for a successful query with no result.
+    * @param param
+    *   The query string and the incoming node
+    */
+  def itShouldQueryEmpty(query: String, md: MarkdNode): Unit = itShouldQuery((query, md) -> Seq.empty)
 
   describe("A Basic MarkdQL query") {
 
     def para(in: String) = List(Paragraph(in))
 
-    it("should return itself with '.'") { query(".", Basic) shouldBe List(Basic) }
-    it("should return its children with '.[*]'") { query(".[*]", Basic) shouldBe Basic.mds }
-    it("should return its children with '[*]'") { query("[*]", Basic) shouldBe Basic.mds }
+    itShouldQuery1((".", Basic) -> Basic)
 
-    it("should find a paragraph 'A.B.C[*]'") { query("A.B.C[*]", Basic) shouldBe para("Hello ABC") }
-    it("should find a paragraph 'A.B.C2[*]'") { query("A.B.C2[*]", Basic) shouldBe para("Hello ABC2") }
+    itShouldQuery((".[*]", Basic) -> Basic.mds)
+    itShouldQuery(("[*]", Basic) -> Basic.mds)
 
-    it("should find a paragraph 'A..C[*]'") { query("A..C[*]", Basic) shouldBe para("Hello ABC") }
-    it("should find a paragraph '..C[*]'") { query("..C[*]", Basic) shouldBe para("Hello ABC") }
+    itShouldQueryTxt(("A.B.C[*]", Basic) -> "Hello ABC")
+    itShouldQueryTxt(("A.B.C2[*]", Basic) -> "Hello ABC2")
+
+    itShouldQueryTxt(("A..C[*]", Basic) -> "Hello ABC")
+    itShouldQueryTxt(("..C2[*]", Basic) -> "Hello ABC2")
+
+    itShouldQueryTxt(("..!To Do[Description,R2]", Basic) -> "D2")
+    // TODO: Should this distinguish between empty and not found?
+    itShouldQueryTxt(("..!To Do[X,R2]", Basic) -> "")
+    // TODO: Should this distinguish between empty and not found?
+    itShouldQueryTxt(("..!To Do[Description,X]", Basic) -> "")
+
+    itShouldQueryTxt(("""."Find me [it's \"complicated\"]".Simple[*]""", Basic) -> "Found")
+    itShouldQueryTxt((""".."!\"Price\""["In[,\\\]\\\\"]""", Basic) -> "Cell")
 
     for (unmatched <- Seq("X", ".X", "X[*]", ".X[*]", ".A.X", ".A.B.X"))
-      it(s"should return empty on unmatched path: '$unmatched'") {
-        query(unmatched, Basic) shouldBe empty
-      }
+      itShouldQueryEmpty(unmatched, Basic)
 
     it("should find all contents 'A[*]'") {
-      Markd(query("A[*]", Basic): _*).build().toString shouldBe
+      Markd(MarkdQL.query("A[*]", Basic): _*).build().toString shouldBe
         """B
           |------------------------------------------------------------------------------
           |
@@ -75,7 +140,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     }
 
     it("should find all contents 'A.B[*]'") {
-      Markd(query("A.B[*]", Basic): _*).build().toString shouldBe
+      Markd(MarkdQL.query("A.B[*]", Basic): _*).build().toString shouldBe
         """Hello AB
           |
           |### C
@@ -90,7 +155,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
 
     for (tableQuery <- Seq("A2.!To Do", "..!To Do"))
       it(s"should find a table: '${tableQuery}'") {
-        Markd(query(tableQuery, Basic): _*).build().toString shouldBe
+        Markd(MarkdQL.query(tableQuery, Basic): _*).build().toString shouldBe
           """| To Do | Description |
           !|-------|-------------|
           !| R1    | D1          |
@@ -99,34 +164,14 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
           !| R4    | D4          |
           !""".stripMargin('!')
       }
-
-    it("should find a table value: '..!To Do[Description,R2]") {
-      query("..!To Do[Description,R2]", Basic) shouldBe List(Paragraph("D2"))
-    }
-
-    it("should not find a table value: '..!To Do[X,R2]") {
-      // TODO: Should this distinguish between empty and not found?
-      query("..!To Do[X,R2]", Basic) shouldBe List(Paragraph(""))
-    }
-
-    it("should not find a table value: '..!To Do[Description,X]") {
-      // TODO: Should this distinguish between empty and not found?
-      query("..!To Do[Description,X]", Basic) shouldBe List(Paragraph(""))
-    }
-
-    it("should find a header with quotes and square brackets") {
-      query("""."Find me [it's \"complicated\"]".Simple[*]""", Basic) shouldBe List(Paragraph("Found"))
-    }
   }
 
   // A[*][*]
   // ..[*]
   // ..C..[*]
   // ..!To Do[rowonly]
-  describe("When given bad queries") {
-    for (badQL <- Seq("A...C"))
-      it(s"should throw an error on: $badQL") {
-        intercept[RuntimeException](query(badQL, Basic)).getMessage shouldBe s"Unrecognized query: $badQL"
-      }
+  describe("Internal MarkdQL query parsing") {
+    itShouldParse("abc" -> ("", "abc", "", ""))
+    itShouldFailToParse("A...C")
   }
 }
