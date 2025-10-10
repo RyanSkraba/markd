@@ -166,12 +166,25 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       }
   }
 
-  // A[*][*]
-  // ..[*]
-  // ..C..[*]
-  // ..!To Do[rowonly]
   describe("Internal MarkdQL query parsing") {
+    itShouldParse("." -> ("", "", "", ""))
+    itShouldParse(".[*]" -> (".", "", "*", ""))
+    itShouldParse(".A[*]" -> (".", "A", "*", ""))
+    itShouldParse("[*]" -> ("", "", "*", ""))
+    itShouldParse("[0]" -> ("", "", "0", ""))
+    itShouldParse(".[stuff]" -> (".", "", "stuff", ""))
+    itShouldParse("..B[0]" -> ("..", "B", "0", ""))
     itShouldParse("abc" -> ("", "abc", "", ""))
+    itShouldParse(""".."abc".rest""" -> ("..", "abc", "", ".rest"))
+    itShouldParse(""".."ab..c".rest""" -> ("..", "ab..c", "", ".rest"))
+    itShouldParse(""".."!abc".rest""" -> ("..", "!abc", "", ".rest"))
+    itShouldParse(""".."!ab..c".rest""" -> ("..", "!ab..c", "", ".rest"))
+    itShouldFailToParse("...C")
     itShouldFailToParse("A...C")
+    // itShouldFailToParse("A[*][*]")
+    // itShouldFailToParse("..[*]")
+    // itShouldFailToParse("..C..[*]")
+    // itShouldFailToParse("..!To Do[rowonly]")
+
   }
 }
