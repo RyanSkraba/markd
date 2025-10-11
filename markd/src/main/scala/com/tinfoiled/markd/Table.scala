@@ -50,12 +50,26 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
     */
   def apply(row: Int): TableRow = mds.applyOrElse(row, (_: Int) => TableRow())
 
+  /** @param row
+    *   The index of the row to get from the table, noting that zero is the header row.
+    * @return
+    *   The row if it exists, or None
+    */
+  def get(row: Int): Option[TableRow] = mds.lift(row)
+
   /** @param rowHead
     *   The row to get from the table by matching the first cell, including the header row.
     * @return
     *   The row, or an empty row if a matching row can't be found.
     */
   def apply(rowHead: String): TableRow = apply(mds.indexWhere(_.head == rowHead))
+
+  /** @param rowHead
+    *   The row to get from the table by matching the first cell, including the header row.
+    * @return
+    *   The row if it exists, or None
+    */
+  def get(rowHead: String): Option[TableRow] = get(mds.indexWhere(_.head == rowHead))
 
   /** @param column
     *   The index of the column to get from the table
@@ -68,12 +82,32 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
 
   /** @param column
     *   The index of the column to get from the table
+    * @param row
+    *   The index of the row to get from the table, noting that zero is the header row.
+    * @return
+    *   The cell value, or None if any of the indexes are out of bounds.
+    */
+  def get(column: Int, row: Int): Option[String] =
+    get(row).flatMap((tr: TableRow) => if (column >= 0 && column < colSize) Some(tr.apply(column)) else None)
+
+  /** @param column
+    *   The index of the column to get from the table
     * @param rowHead
     *   The row to get from the table by matching the first cell, including the header row.
     * @return
     *   The cell value, or an empty string if the column is out of bounds or the row header can't be found
     */
   def apply(column: Int, rowHead: String): String = apply(rowHead).apply(column)
+
+  /** @param column
+    *   The index of the column to get from the table
+    * @param rowHead
+    *   The row to get from the table by matching the first cell, including the header row.
+    * @return
+    *   The cell value, or None if the column is out of bounds or the row header can't be found
+    */
+  def get(column: Int, rowHead: String): Option[String] =
+    get(rowHead).flatMap((tr: TableRow) => if (column >= 0 && column < colSize) Some(tr.apply(column)) else None)
 
   /** @param columnHead
     *   The row to get from the table by matching the first cell in the header.
@@ -84,9 +118,17 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
     */
   def apply(columnHead: String, rowHead: String): String = {
     val colIndex = mds.head.cells.indexOf(columnHead)
-    if (colIndex == -1) ""
-    else apply(rowHead).apply(colIndex)
+    if (colIndex == -1) "" else apply(rowHead).apply(colIndex)
   }
+
+  /** @param columnHead
+    *   The row to get from the table by matching the first cell in the header.
+    * @param rowHead
+    *   The row to get from the table by matching the first cell, including the header row.
+    * @return
+    *   The cell value, or None if the column is out of bounds or the row header can't be found
+    */
+  def get(columnHead: String, rowHead: String): Option[String] = get(mds.head.cells.indexOf(columnHead), rowHead)
 
   override def build(sb: StringBuilder = new StringBuilder(), cfg: FormatCfg = FormatCfg.Default): StringBuilder = {
     // The column header line
@@ -96,16 +138,13 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
     sb ++= (for ((a, i) <- aligns.zipWithIndex)
       yield {
         val sb2 = new StringBuilder("-" * (widths(i) + 2))
-        if (a == Align.CENTER || a == Align.RIGHT)
-          sb2.setCharAt(sb2.length - 1, ':')
-        if (a == Align.CENTER)
-          sb2.setCharAt(0, ':')
+        if (a == Align.CENTER || a == Align.RIGHT) sb2.setCharAt(sb2.length - 1, ':')
+        if (a == Align.CENTER) sb2.setCharAt(0, ':')
         sb2
       }).mkString("|", "|", "|\n")
 
     // And a line for each row
-    for (tr <- mds.tail)
-      tr.buildRow(aligns, widths, sb, cfg)
+    for (tr <- mds.tail) tr.buildRow(aligns, widths, sb, cfg)
     sb
   }
 
@@ -159,8 +198,7 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
     */
   def updated(column: Int, rowHead: String, cell: String): Table = {
     val rowIndex = mds.indexWhere(_.head == rowHead)
-    if (rowIndex == -1)
-      updated(0, mds.length, rowHead).updated(column, mds.length, cell)
+    if (rowIndex == -1) updated(0, mds.length, rowHead).updated(column, mds.length, cell)
     else updated(column, rowIndex, cell)
   }
 
@@ -178,8 +216,7 @@ case class Table(aligns: Seq[Align], mds: TableRow*) extends MarkdContainer[Tabl
     */
   def updated(columnHead: String, rowHead: String, cell: String): Table = {
     val colIndex = mds.head.cells.indexOf(columnHead)
-    if (colIndex == -1)
-      updated(mds.head.cells.length, 0, columnHead).updated(mds.head.cells.length, rowHead, cell)
+    if (colIndex == -1) updated(mds.head.cells.length, 0, columnHead).updated(mds.head.cells.length, rowHead, cell)
     else updated(colIndex, rowHead, cell)
   }
 }
@@ -210,12 +247,10 @@ object Table {
 
     // Check the second row for alignments.
     val aligns: Seq[Align] = lines(1).flatMap {
-      case AlignmentCellRegex(cell) if cell.startsWith(":") && cell.endsWith(":") =>
-        Some(Align.CENTER)
-      case AlignmentCellRegex(cell) if cell.endsWith(":") =>
-        Some(Align.RIGHT)
-      case AlignmentCellRegex(_) => Some(Align.LEFT)
-      case _                     => None
+      case AlignmentCellRegex(cell) if cell.startsWith(":") && cell.endsWith(":") => Some(Align.CENTER)
+      case AlignmentCellRegex(cell) if cell.endsWith(":")                         => Some(Align.RIGHT)
+      case AlignmentCellRegex(_)                                                  => Some(Align.LEFT)
+      case _                                                                      => None
     }
     // If the alignment row removed any columns, then this is not a Table
     if (aligns.length < lines(1).length) return None
@@ -259,7 +294,6 @@ case class TableRow(cells: String*) extends MarkdNode {
       sb: StringBuilder = new StringBuilder(),
       cfg: FormatCfg = FormatCfg.Default
   ): StringBuilder = {
-
     val aligned =
       for (i <- 0 until Math.max(aligns.length, cells.length)) yield {
         val align = aligns.applyOrElse(i, (_: Int) => Align.LEFT)
