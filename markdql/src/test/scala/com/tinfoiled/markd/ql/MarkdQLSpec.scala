@@ -92,10 +92,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
 
   describe("A Basic MarkdQL query") {
 
-    def para(in: String) = List(Paragraph(in))
-
     itShouldQuery1((".", Basic) -> Basic)
-
     itShouldQuery((".[*]", Basic) -> Basic.mds)
     itShouldQuery(("[*]", Basic) -> Basic.mds)
 
@@ -106,10 +103,9 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQueryTxt(("..C2[*]", Basic) -> "Hello ABC2")
 
     itShouldQueryTxt(("..!To Do[Description,R2]", Basic) -> "D2")
-    // TODO: Should this distinguish between empty and not found?
-    itShouldQueryTxt(("..!To Do[X,R2]", Basic) -> "")
-    // TODO: Should this distinguish between empty and not found?
-    itShouldQueryTxt(("..!To Do[Description,X]", Basic) -> "")
+
+    itShouldQueryEmpty("..!To Do[X,R2]", Basic)
+    itShouldQueryEmpty("..!To Do[Description,X]", Basic)
 
     itShouldQueryTxt(("""."Find me [it's \"complicated\"]".Simple[*]""", Basic) -> "Found")
     itShouldQueryTxt((""".."!\"Price\""["In[,\\\]\\\\"]""", Basic) -> "Cell")

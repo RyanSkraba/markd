@@ -77,7 +77,7 @@ object MarkdQL {
         case ("*", Seq(mdx: MarkdContainer[_])) => Query(rest, mdx.mds: _*)
         case (q, Seq(tbl: Table)) if q.contains(',') =>
           val (column, row) = q.span(_ != ',')
-          Query(rest, Paragraph(tbl.apply(column, row.tail)))
+          Query(rest, tbl.get(column, row.tail).map(Paragraph(_)).toSeq: _*)
         case _ => Query(rest, tokenMatch: _*)
       }
     }
