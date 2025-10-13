@@ -55,111 +55,84 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     }
   }
 
-  /** Tests for a successful query.
-    * @param param
-    *   The query string and the incoming node, and the expected result nodes
-    */
-  def itShouldQuery(param: ((String, MarkdNode), Seq[MarkdNode])): Unit = {
-    val ((query, md), expected) = param
-    val qualifier = expected match {
+  /** Tests for a successful query. */
+  def itShouldQuery(query: String, md: (MarkdNode, Seq[MarkdNode]), msg: String = ""): Unit = {
+    val qualifier = md._2 match {
       case Seq()               => " (no match)"
       case Seq(Paragraph(txt)) => s" (found '$txt')"
       case _                   => ""
     }
 
-    it(s"should query: $query$qualifier") { MarkdQL.query(query, md) shouldBe expected }
+    it(if (msg.isBlank) s"should query: $query$qualifier" else msg) { MarkdQL.query(query, md._1) shouldBe md._2 }
   }
 
-  /** Tests for a successful query with one result.
-    * @param param
-    *   The query string and the incoming node, and a single expected result node
-    */
-  def itShouldQuery1(param: ((String, MarkdNode), MarkdNode)): Unit = itShouldQuery(param._1 -> Seq(param._2))
+  /** Tests for a successful query with one result. */
+  def itShouldQuery1(query: String, md: (MarkdNode, MarkdNode), msg: String = ""): Unit =
+    itShouldQuery(query, md._1 -> Seq(md._2), msg)
 
-  /** Tests for a successful query with one paragraph result.
-    * @param param
-    *   The query string and the incoming node, and a single expected string
-    */
-  def itShouldQueryTxt(param: ((String, MarkdNode), String)): Unit = itShouldQuery(
-    param._1 -> Seq(Paragraph(param._2))
-  )
+  /** Tests for a successful query with one paragraph result. */
+  def itShouldQueryTxt(query: String, md: (MarkdNode, String), msg: String = ""): Unit =
+    itShouldQuery(query, md._1 -> Seq(Paragraph(md._2)), msg)
 
   /** Tests for a successful query with no result.
     * @param param
     *   The query string and the incoming node
     */
-  def itShouldQueryEmpty(query: String, md: MarkdNode): Unit = itShouldQuery((query, md) -> Seq.empty)
+  def itShouldQueryEmpty(query: String, md: MarkdNode): Unit = itShouldQuery(query, md -> Seq.empty)
 
-  describe("A Basic MarkdQL query") {
+  describe("When querying directly on the input") {
+    itShouldQuery1(".", Basic -> Basic)
+    itShouldQuery(".[*]", Basic -> Basic.mds)
+    itShouldQuery("[*]", Basic -> Basic.mds)
+  }
 
-    itShouldQuery1((".", Basic) -> Basic)
-    itShouldQuery((".[*]", Basic) -> Basic.mds)
-    itShouldQuery(("[*]", Basic) -> Basic.mds)
+  describe("When querying inside subheaders ") {
+    itShouldQuery1("A.B.C", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+    itShouldQueryTxt("A.B.C[*]", Basic -> "Hello ABC")
+    itShouldQueryTxt("A.B.C2[*]", Basic -> "Hello ABC2")
 
-    itShouldQueryTxt(("A.B.C[*]", Basic) -> "Hello ABC")
-    itShouldQueryTxt(("A.B.C2[*]", Basic) -> "Hello ABC2")
+    itShouldQuery1("A..C", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+    itShouldQueryTxt("A..C[*]", Basic -> "Hello ABC")
+    itShouldQuery1("..C2", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
+    itShouldQueryTxt("..C2[*]", Basic -> "Hello ABC2")
+    itShouldQuery(
+      "..B[*]",
+      Basic -> List(
+        Paragraph("Hello AB"),
+        Header(3, "C", Paragraph("Hello ABC")),
+        Header(3, "C2", Paragraph("Hello ABC2"))
+      )
+    )
+  }
 
-    itShouldQueryTxt(("A..C[*]", Basic) -> "Hello ABC")
-    itShouldQueryTxt(("..C2[*]", Basic) -> "Hello ABC2")
-
-    itShouldQueryTxt(("..!To Do[Description,R2]", Basic) -> "D2")
-
+  describe("When querying a table") {
+    itShouldQueryTxt("..!To Do[Description,R2]", Basic -> "D2")
     itShouldQueryEmpty("..!To Do[X,R2]", Basic)
     itShouldQueryEmpty("..!To Do[Description,X]", Basic)
 
-    itShouldQueryTxt(("""."Find me [it's \"complicated\"]".Simple[*]""", Basic) -> "Found")
-    itShouldQueryTxt((""".."!\"Price\""["In[,\\\]\\\\"]""", Basic) -> "Cell")
+    for (tableQuery <- Seq("A2.!To Do", "A2[*]", "..!To Do"))
+      it(s"should find a table: '${tableQuery}'") {
+        Markd(MarkdQL.query(tableQuery, Basic): _*).build().toString shouldBe
+          """| To Do | Description |
+               !|-------|-------------|
+               !| R1    | D1          |
+               !| R2    | D2          |
+               !| R3    | D3          |
+               !| R4    | D4          |
+               !""".stripMargin('!')
+      }
+  }
+
+  describe("When quoting a query token") {
+    itShouldQueryTxt("""."Find me [it's \"complicated\"]".Simple[*]""", Basic -> "Found")
+    itShouldQueryTxt(""".."!\"Price\""["In[,\\\]\\\\"]""", Basic -> "Cell")
+  }
+
+  describe("When a query doesn't match") {
 
     for (unmatched <- Seq("X", ".X", "X[*]", ".X[*]", ".A.X", ".A.B.X"))
       itShouldQueryEmpty(unmatched, Basic)
 
-    it("should find all contents 'A[*]'") {
-      Markd(MarkdQL.query("A[*]", Basic): _*).build().toString shouldBe
-        """B
-          |------------------------------------------------------------------------------
-          |
-          |Hello AB
-          |
-          |### C
-          |
-          |Hello ABC
-          |
-          |### C2
-          |
-          |Hello ABC2
-          |
-          |B2
-          |------------------------------------------------------------------------------
-          |
-          |Hello AB2
-          |""".stripMargin
-    }
-
-    it("should find all contents 'A.B[*]'") {
-      Markd(MarkdQL.query("A.B[*]", Basic): _*).build().toString shouldBe
-        """Hello AB
-          |
-          |### C
-          |
-          |Hello ABC
-          |
-          |### C2
-          |
-          |Hello ABC2
-          |""".stripMargin
-    }
-
-    for (tableQuery <- Seq("A2.!To Do", "..!To Do"))
-      it(s"should find a table: '${tableQuery}'") {
-        Markd(MarkdQL.query(tableQuery, Basic): _*).build().toString shouldBe
-          """| To Do | Description |
-          !|-------|-------------|
-          !| R1    | D1          |
-          !| R2    | D2          |
-          !| R3    | D3          |
-          !| R4    | D4          |
-          !""".stripMargin('!')
-      }
   }
 
   describe("Internal MarkdQL query parsing") {
