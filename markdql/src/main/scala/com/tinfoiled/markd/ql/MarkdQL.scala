@@ -63,10 +63,10 @@ object MarkdQL {
     lazy val next: Query = {
       val tokenMatch: Seq[MarkdNode] = this match {
         case Query("" | ".", "", _, _, md) => md
-        case Query("" | ".", token, _, _, Seq(md: MarkdContainer[_])) if token.startsWith("!") =>
-          md.mds.collectFirst { case tbl: Table if tbl.title == token.tail => tbl }.toSeq
-        case Query("..", token, _, _, Seq(md: MarkdContainer[_])) if token.startsWith("!") =>
-          md.collectFirstRecursive { case tbl: Table if tbl.title == token.tail => tbl }.toSeq
+        case Query("!" | ".!", token, _, _, Seq(md: MarkdContainer[_])) =>
+          md.mds.collectFirst { case tbl: Table if tbl.title == token => tbl }.toSeq
+        case Query("..!", token, _, _, Seq(md: MarkdContainer[_])) =>
+          md.collectFirstRecursive { case tbl: Table if tbl.title == token => tbl }.toSeq
         case Query("" | ".", token, _, _, Seq(md: MarkdContainer[_])) =>
           md.mds.collectFirst { case h @ Header(_, title, _*) if title == token => h }.toSeq
         case Query("..", token, _, _, Seq(md: MarkdContainer[_])) =>
@@ -87,12 +87,21 @@ object MarkdQL {
 
     val QueryRegex: Regex =
       raw"""(?x)^
-              (?<sep>\.{0,2})                                      # Start with a separator of 0-2 periods
+              (?<sep>\.{0,2}!?)                                    # Start with a separator of 0-2 periods
               (?:
-                (?<token>[^"\[.][^.\[]*|"(?:[^"\\]|\\.)+")         # Either a token with an optional index in []
-                (?:\[(?<optIndex>[^"][^]]*|"(?:[^"\\]|\\.)*")])?
+                (?<token>                                          # Either a token and optional index in []
+                    [^"\[.!][^.!\[]*
+                    |
+                    "(?:[^"\\]|\\.)+")
+                (?:\[(?<optIndex>
+                    [^"][^]]*
+                    |
+                    "(?:[^"\\]|\\.)*")])?
                 |
-                \[(?<index>[^]"][^]]*|"(?:[^"\\]|\\.)*")]          # Or directly an index in square brackets
+                \[(?<index>                                        # Or no token and an index in square brackets
+                    [^]"][^]]*
+                    |
+                    "(?:[^"\\]|\\.)*")]
               )
               (?<rest>.*)
              $$""".r

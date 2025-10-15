@@ -7,6 +7,7 @@ import org.scalatest.matchers.should.Matchers
 /** Unit tests for [[MarkdQL]] */
 class MarkdQLSpec extends AnyFunSpecLike with Matchers {
 
+  /** A basic queryable markdown */
   val Basic: Markd = Markd.parse("""# A
       !## B
       !Hello AB
@@ -30,6 +31,19 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       !| "Price" | In[
       !|------|---------
       !|\]\\  | Cell
+      !""".stripMargin('!'))
+
+  /** Top-level tables */
+  val Table: Markd = Markd.parse("""
+      !|Key | Value
+      !|----|---
+      !|K1  | V1
+      !|K2  | V2
+      !
+      !|KeyX | Value
+      !|-----|---
+      !|Kx1  | Vx1
+      !|Kx2  | Vx2
       !""".stripMargin('!'))
 
   /** Successful internal parsing test. This is helpful especially for debugging, but uses the exposed internals in
@@ -58,8 +72,8 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
   /** Tests for a successful query. */
   def itShouldQuery(query: String, md: (MarkdNode, Seq[MarkdNode]), msg: String = ""): Unit = {
     val qualifier = md._2 match {
-      case Seq()               => " (no match)"
-      case Seq(Paragraph(txt)) => s" (found '$txt')"
+      case Seq()               => " (finding no match)"
+      case Seq(Paragraph(txt)) => s" (finding '$txt')"
       case _                   => ""
     }
 
@@ -74,10 +88,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
   def itShouldQueryTxt(query: String, md: (MarkdNode, String), msg: String = ""): Unit =
     itShouldQuery(query, md._1 -> Seq(Paragraph(md._2)), msg)
 
-  /** Tests for a successful query with no result.
-    * @param param
-    *   The query string and the incoming node
-    */
+  /** Tests for a successful query with no result. */
   def itShouldQueryEmpty(query: String, md: MarkdNode): Unit = itShouldQuery(query, md -> Seq.empty)
 
   describe("When querying directly on the input") {
@@ -110,31 +121,33 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQueryEmpty("..!To Do[X,R2]", Basic)
     itShouldQueryEmpty("..!To Do[Description,X]", Basic)
 
-    for (tableQuery <- Seq("A2.!To Do", "A2[*]", "..!To Do"))
+    for (tableQuery <- Seq("!Key[Value,K2]", ".!Key[Value,K2]", "..!Key[Value,K2]"))
+      itShouldQueryTxt(tableQuery, Table -> "V2")
+
+    for (tableQuery <- Seq("A2.!To Do", "A2!To Do", "A2[*]", "..!To Do"))
       it(s"should find a table: '${tableQuery}'") {
         Markd(MarkdQL.query(tableQuery, Basic): _*).build().toString shouldBe
           """| To Do | Description |
-               !|-------|-------------|
-               !| R1    | D1          |
-               !| R2    | D2          |
-               !| R3    | D3          |
-               !| R4    | D4          |
-               !""".stripMargin('!')
+            !|-------|-------------|
+            !| R1    | D1          |
+            !| R2    | D2          |
+            !| R3    | D3          |
+            !| R4    | D4          |
+            !""".stripMargin('!')
       }
   }
 
   describe("When quoting a query token") {
     itShouldQueryTxt("""."Find me [it's \"complicated\"]".Simple[*]""", Basic -> "Found")
-    itShouldQueryTxt(""".."!\"Price\""["In[,\\\]\\\\"]""", Basic -> "Cell")
+    itShouldQueryTxt("""..!"\"Price\""["In[,\\\]\\\\"]""", Basic -> "Cell")
   }
 
   describe("When a query doesn't match") {
-
     for (unmatched <- Seq("X", ".X", "X[*]", ".X[*]", ".A.X", ".A.B.X"))
       itShouldQueryEmpty(unmatched, Basic)
-
   }
 
+  /** These tests test the internal query parsing as a check for debugging changes */
   describe("Internal MarkdQL query parsing") {
     itShouldParse("." -> ("", "", "", ""))
     itShouldParse(".[*]" -> (".", "", "*", ""))
@@ -148,12 +161,30 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldParse(""".."ab..c".rest""" -> ("..", "ab..c", "", ".rest"))
     itShouldParse(""".."!abc".rest""" -> ("..", "!abc", "", ".rest"))
     itShouldParse(""".."!ab..c".rest""" -> ("..", "!ab..c", "", ".rest"))
-    itShouldFailToParse("...C")
-    itShouldFailToParse("A...C")
-    // itShouldFailToParse("A[*][*]")
-    // itShouldFailToParse("..[*]")
-    // itShouldFailToParse("..C..[*]")
-    // itShouldFailToParse("..!To Do[rowonly]")
 
+    describe("when given an invalid query") {
+      itShouldFailToParse("...C")
+      itShouldFailToParse("A...C")
+      itShouldFailToParse("..C[")
+      // itShouldFailToParse("A[*][*]")
+      // itShouldFailToParse("..[*]")
+      // itShouldFailToParse("..C..[*]")
+      // itShouldFailToParse("..!To Do[rowonly]")
+    }
+
+    describe("when querying tables") {
+      itShouldParse("""!A.rest""" -> ("!", "A", "", ".rest"))
+      itShouldParse(""".!A.rest""" -> (".!", "A", "", ".rest"))
+      itShouldParse("""..!A.rest""" -> ("..!", "A", "", ".rest"))
+      itShouldParse("""!"!A!\"\\\x.x[".rest""" -> ("!", """!A!"\x.x[""", "", ".rest"))
+      itShouldParse(""".!"!A!\"\\\x.x[".rest""" -> (".!", """!A!"\x.x[""", "", ".rest"))
+      itShouldParse("""..!"!A!\"\\\x.x[".rest""" -> ("..!", """!A!"\x.x[""", "", ".rest"))
+
+      // TODO: What should an empty token to?  Find an empty title?
+      itShouldParse("![*]" -> ("!", "", "*", ""))
+      itShouldFailToParse("!")
+      itShouldFailToParse(".!")
+      itShouldFailToParse("..!")
+    }
   }
 }
