@@ -16,7 +16,7 @@ import scala.util.matching.Regex
   * | `Weekly..2025-02-14` | Find the level one header with the title "Weekly" and return the first subheader named "2025-02-14" at any level inside
   * | `Weekly.!To Do`      | Find the level one header with the title "Weekly" and return the To Do table that it contains.
   * | `Weekly.!To Do[y,x]` | In the table found above, look for the row with "x" as it's first element, and return the value in the "y" column (according to the table headers).
-  * | `..Weekly[0]`        | ❌ Any header with the title "Weekly" and return the first element it contains.
+  * | `..Weekly[0]`        | Any header with the title "Weekly" and return the first element it contains.
   * | `Weekly[code][0]`    | ❌ Find the level one header with the title "Weekly" and return the first code block it contains.
   * }}}
   */
@@ -75,6 +75,8 @@ object MarkdQL {
 
       (index, tokenMatch) match {
         case ("*", Seq(mdx: MarkdContainer[_])) => Query(rest, mdx.mds: _*)
+        case (number, Seq(mdx: MarkdContainer[_])) if number.toIntOption.exists(_ >= 0) =>
+          Query(rest, mdx.mds.lift(number.toIntOption.get).toSeq: _*)
         case (q, Seq(tbl: Table)) if q.contains(',') =>
           val (column, row) = q.span(_ != ',')
           Query(rest, tbl.get(column, row.tail).map(Paragraph(_)).toSeq: _*)

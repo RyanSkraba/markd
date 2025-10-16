@@ -1,5 +1,6 @@
 package com.tinfoiled.markd.ql
 
+import com.tinfoiled.markd
 import com.tinfoiled.markd._
 import org.scalatest.funspec.AnyFunSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -95,17 +96,22 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQuery1(".", Basic -> Basic)
     itShouldQuery(".[*]", Basic -> Basic.mds)
     itShouldQuery("[*]", Basic -> Basic.mds)
+    itShouldQuery1("[0]", Basic -> Basic.mds.head)
   }
 
   describe("When querying inside subheaders ") {
     itShouldQuery1("A.B.C", Basic -> Header(3, "C", Paragraph("Hello ABC")))
     itShouldQueryTxt("A.B.C[*]", Basic -> "Hello ABC")
+    itShouldQueryTxt("A.B.C[0]", Basic -> "Hello ABC")
     itShouldQueryTxt("A.B.C2[*]", Basic -> "Hello ABC2")
+    itShouldQueryTxt("A.B.C2[0]", Basic -> "Hello ABC2")
 
     itShouldQuery1("A..C", Basic -> Header(3, "C", Paragraph("Hello ABC")))
     itShouldQueryTxt("A..C[*]", Basic -> "Hello ABC")
+    itShouldQueryTxt("A..C[0]", Basic -> "Hello ABC")
     itShouldQuery1("..C2", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
     itShouldQueryTxt("..C2[*]", Basic -> "Hello ABC2")
+    itShouldQueryTxt("..C2[0]", Basic -> "Hello ABC2")
     itShouldQuery(
       "..B[*]",
       Basic -> List(
@@ -114,12 +120,31 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
         Header(3, "C2", Paragraph("Hello ABC2"))
       )
     )
+    itShouldQueryTxt("..B[0]", Basic -> "Hello AB")
+    itShouldQuery1("..B[1]", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+    itShouldQuery1("..B[2]", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
+    itShouldQueryEmpty("..B[3]", Basic)
+
+    // TODO: Countdown
+//    itShouldQueryTxt("..B[-3]", Basic -> "Hello AB")
+//    itShouldQuery1("..B[-2]", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+//    itShouldQuery1("..B[-1]", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
+//    itShouldQueryEmpty("..B[-4]", Basic)
   }
 
   describe("When querying a table") {
     itShouldQueryTxt("..!To Do[Description,R2]", Basic -> "D2")
     itShouldQueryEmpty("..!To Do[X,R2]", Basic)
     itShouldQueryEmpty("..!To Do[Description,X]", Basic)
+
+    itShouldQuery1("!Key", Table -> markd.Table(2, "Key", "Value", "K1", "V1", "K2", "V2"))
+    itShouldQuery1("!Key[0]", Table -> TableRow("Key", "Value"))
+    itShouldQuery1("!Key[1]", Table -> TableRow("K1", "V1"))
+    itShouldQuery1("!Key[2]", Table -> TableRow("K2", "V2"))
+    itShouldQueryEmpty("!Key[3]", Table)
+
+    // TODO: Query cells
+    // itShouldQueryTxt("!Key[0][0]", Table ->  "Key")
 
     for (tableQuery <- Seq("!Key[Value,K2]", ".!Key[Value,K2]", "..!Key[Value,K2]"))
       itShouldQueryTxt(tableQuery, Table -> "V2")

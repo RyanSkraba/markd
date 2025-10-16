@@ -22,6 +22,17 @@ class TableSpec extends AnyFunSpecLike with Matchers {
       Table.parseRow(raw"one\||t\|wo|\|three") shouldBe Seq(raw"one\|", raw"t\|wo", raw"\|three")
     }
 
+    it("should create tables using the shortcut constructor") {
+      Table(3, "A", "B", "C", "a1", "b1", "c1", "a2", "b2", "c2", "a3", "b3", "", "a4").build().toString shouldBe
+        """| A  | B  | C  |
+          !|----|----|----|
+          !| a1 | b1 | c1 |
+          !| a2 | b2 | c2 |
+          !| a3 | b3 |    |
+          !| a4 |    |    |
+          !""".stripMargin('!')
+    }
+
     it("should access table cells and rows") {
       val md = Table
         .parse("""A  | B  | A

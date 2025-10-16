@@ -228,6 +228,18 @@ object Table {
 
   private val AlignmentCellRegex: Regex = raw"^\s*(:-+:|---+|:--+|-+-:)\s*$$".r
 
+  /** Shortcut table creator
+    * @param cols
+    *   The number of left-aligned columns to use
+    * @param cells
+    *   Cells to apply to rows and columns in order (left-to-right, top-to-bottom). The first row, as always, are the
+    *   table headers.
+    * @return
+    *   The table with the given cell contents.
+    */
+  def apply(cols: Int, cells: String*): Table =
+    Table(Seq.fill(cols)(Align.LEFT), cells.grouped(cols).map(_.toSeq).map(TableRow(_: _*)).toSeq: _*)
+
   /** Determines if some content can be reasonably parsed into a [[Table]].
     * @param content
     *   The string contents to parse.
