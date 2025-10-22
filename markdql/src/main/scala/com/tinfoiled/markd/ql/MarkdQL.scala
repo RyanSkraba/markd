@@ -16,9 +16,9 @@ import scala.util.matching.Regex
   * | `Monthly..2025-02`     | Find the level one header with the title `Monthly` and return the first subheader named `2025-02` at any level inside                   |
   * | `Weekly!To Do`         | Find the level one header with the title `Weekly` and return the `To Do` table that it contains.                                        |
   * | `..!Status[12]`        | Find any `Status` table and return the 12th table row (note that row 0 is always the column headers).                                   |
-  * | `..!Status[0][3]`      | Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
+  * | `..!Status[0][3]`      | ❌ Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
   * | `..!Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
-  * | `..Weekly[0]`          | Any header with the title "Weekly" and return the first element it contains.                                                            |
+  * | `..Weekly[0]`          | Any header with the title `Weekly` and return the first element it contains.                                                            |
   * | `Weekly[code][0]`      | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
   * | `Weekly[0][4]`         | ❌ Find the top `Weekly` header, go to its first child and return that elements 5th child.                                               |
   * }}}
@@ -49,9 +49,9 @@ object MarkdQL {
     * This is an internal API, exposed for testability.
     *
     * @param mds
-    *   The set of markdown nodes currently being queried
+    *   The set of markdown nodes currently being queried (before the query is applied).
     * @param separator
-    *   The separator before the string token, either "", "." or ".."
+    *   The separator before the string token, zero to two periods followed by an optional !.
     * @param token
     *   A string token to search for (if any)
     * @param index
@@ -122,7 +122,7 @@ object MarkdQL {
       // If the token is present, then unquote it if it's quoted.
       val token = Option(m.group("token"))
         .map {
-          case quoted if quoted.head == '"' => quoted.slice(1, quoted.length - 1).replaceAll("\\\\(.)", "$1")
+          case quoted if quoted.head == '"' => quoted.slice(1, quoted.length - 1).replaceAll(raw"\\(.)", "$1")
           case unquoted                     => unquoted
         }
         .getOrElse("")
@@ -131,7 +131,7 @@ object MarkdQL {
       val index = Option(m.group("optIndex"))
         .orElse(Option(m.group("index")))
         .map {
-          case quoted if quoted.head == '"' => quoted.slice(1, quoted.length - 1).replaceAll("\\\\(.)", "$1")
+          case quoted if quoted.head == '"' => quoted.slice(1, quoted.length - 1).replaceAll(raw"\\(.)", "$1")
           case unquoted                     => unquoted
         }
         .getOrElse("")

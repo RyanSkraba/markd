@@ -39,6 +39,18 @@ TODO:
   - minify
   - atx or setext
   - fenced break style
+
+```bash
+  __query_examples=$(byexample_go_markd query --query $'..Using MarkdQL.Examples.!Query' readme.md)
+  awk -v newblock="$__query_examples" '
+            BEGIN { replacing=0 }
+            /{{{/{ print; print newblock; print "}}}"; replacing=1; next }
+            /}}}/ && replacing { replacing=0; next }
+            !replacing { print }
+          ' "$(find . -name MarkdQL.scala)" >/tmp/MarkdQL.scala &&
+    mv /tmp/MarkdQL.scala "$(find . -name MarkdQL.scala)"
+```
+
 -->
 
 Using Markd
@@ -105,12 +117,14 @@ Using MarkdQL
 |------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | `One.Two.Three[*]`     | Find the level one header with the name `One`, with a subheader named `Two` and a third-level header `Three` and return those contents. |
 | `Top`                  | Find and return the level one header with the title "Top"                                                                               |
+| `"..Top"`              | Find and return the level one header with the title "..Top"                                                                             |
+| `/Week.*Fails/`              | Find and return the level one header with the title "..Top"                                                                             |
 | `Monthly..2025-02`     | Find the level one header with the title `Monthly` and return the first subheader named `2025-02` at any level inside                   |
 | `Weekly!To Do`         | Find the level one header with the title `Weekly` and return the `To Do` table that it contains.                                        |
 | `..!Status[12]`        | Find any `Status` table and return the 12th table row (note that row 0 is always the column headers).                                   |
-| `..!Status[0][3]`      | Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
+| `..!Status[0][3]`      | ❌ Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
 | `..!Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
-| `..Weekly[0]`          | Any header with the title "Weekly" and return the first element it contains.                                                            |
+| `..Weekly[0]`          | Any header with the title `Weekly` and return the first element it contains.                                                            |
 | `Weekly[code][0]`      | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
 | `Weekly[0][4]`         | ❌ Find the top `Weekly` header, go to its first child and return that elements 5th child.                                               |
 
