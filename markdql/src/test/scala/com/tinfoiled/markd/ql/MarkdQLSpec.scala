@@ -55,7 +55,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
   def itShouldParse(param: (String, (String, String, String, String))): Unit = {
     val (query, expected) = param
     it(s"should successfully parse: $query") {
-      val q = MarkdQL.Query(query)
+      val q = MarkdQL.Query(rest = query).next
       (q.separator, q.token, q.index, q.rest) shouldBe expected
     }
   }
@@ -174,12 +174,14 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
 
   /** These tests test the internal query parsing as a check for debugging changes */
   describe("Internal MarkdQL query parsing") {
+    itShouldParse("" -> ("", "", "", ""))
     itShouldParse("." -> ("", "", "", ""))
-    itShouldParse(".[*]" -> (".", "", "*", ""))
-    itShouldParse(".A[*]" -> (".", "A", "*", ""))
+    itShouldParse(".[*]" -> ("", "", "*", ""))
+    itShouldParse(".A[*]" -> ("", "A", "*", ""))
     itShouldParse("[*]" -> ("", "", "*", ""))
     itShouldParse("[0]" -> ("", "", "0", ""))
-    itShouldParse(".[stuff]" -> (".", "", "stuff", ""))
+    itShouldParse("[0][1]" -> ("", "", "0", "[1]"))
+    itShouldParse(".[stuff]" -> ("", "", "stuff", ""))
     itShouldParse("..B[0]" -> ("..", "B", "0", ""))
     itShouldParse("abc" -> ("", "abc", "", ""))
     itShouldParse(""".."abc".rest""" -> ("..", "abc", "", ".rest"))
@@ -199,10 +201,10 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
 
     describe("when querying tables") {
       itShouldParse("""!A.rest""" -> ("!", "A", "", ".rest"))
-      itShouldParse(""".!A.rest""" -> (".!", "A", "", ".rest"))
+      itShouldParse(""".!A.rest""" -> ("!", "A", "", ".rest"))
       itShouldParse("""..!A.rest""" -> ("..!", "A", "", ".rest"))
       itShouldParse("""!"!A!\"\\\x.x[".rest""" -> ("!", """!A!"\x.x[""", "", ".rest"))
-      itShouldParse(""".!"!A!\"\\\x.x[".rest""" -> (".!", """!A!"\x.x[""", "", ".rest"))
+      itShouldParse(""".!"!A!\"\\\x.x[".rest""" -> ("!", """!A!"\x.x[""", "", ".rest"))
       itShouldParse("""..!"!A!\"\\\x.x[".rest""" -> ("..!", """!A!"\x.x[""", "", ".rest"))
 
       // TODO: What should an empty token to?  Find an empty title?
