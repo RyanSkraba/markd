@@ -106,6 +106,33 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQueryTxt("A.B.C2[*]", Basic -> "Hello ABC2")
     itShouldQueryTxt("A.B.C2[0]", Basic -> "Hello ABC2")
 
+    // Some goofiness with quotes and separators
+    itShouldQuery1(""""A"."B"."C"""", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+    itShouldQuery1(""""A""B""C"""", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+
+    // Nesting indices to find leaf nodes is possible, but not very much fun!
+    itShouldQueryTxt("A.B.[0]", Basic -> "Hello AB")
+    itShouldQueryTxt("A.B[0]", Basic -> "Hello AB")
+    itShouldQueryTxt("[0][0][0]", Basic -> "Hello AB")
+    itShouldQueryTxt("A[0][0]", Basic -> "Hello AB")
+    itShouldQueryTxt("[0]B[0]", Basic -> "Hello AB")
+    itShouldQueryTxt("[0].B[0]", Basic -> "Hello AB")
+    itShouldQueryTxt("[0].B.[0]", Basic -> "Hello AB")
+
+    // We can mix searching and by index
+    itShouldQueryTxt("[0][0][1][0][0]", Basic -> "Hello ABC")
+    itShouldQueryTxt("[0][0][1][0][*]", Basic -> "Hello ABC")
+    itShouldQueryTxt("[0][0][2][0][0]", Basic -> "Hello ABC2")
+    itShouldQueryTxt("[0][0][2][0][*]", Basic -> "Hello ABC2")
+    itShouldQueryTxt("A[0]C[0]", Basic -> "Hello ABC")
+    itShouldQueryTxt("A[0]C2[0]", Basic -> "Hello ABC2")
+    itShouldQueryTxt("A[0]C2[*]", Basic -> "Hello ABC2")
+    itShouldQueryTxt("[0][1][0]", Basic -> "Hello AB2")
+    itShouldQueryTxt("[2][0][0]", Basic -> "Found")
+
+    // TODO: This should probably be an error or return empty
+    itShouldQueryTxt("A[0]C2[0][0][0][0][0][0][0][0][0][0]", Basic -> "Hello ABC2")
+
     itShouldQuery1("A..C", Basic -> Header(3, "C", Paragraph("Hello ABC")))
     itShouldQueryTxt("A..C[*]", Basic -> "Hello ABC")
     itShouldQueryTxt("A..C[0]", Basic -> "Hello ABC")
@@ -125,11 +152,11 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQuery1("..B[2]", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
     itShouldQueryEmpty("..B[3]", Basic)
 
-    // TODO: Countdown
-//    itShouldQueryTxt("..B[-3]", Basic -> "Hello AB")
-//    itShouldQuery1("..B[-2]", Basic -> Header(3, "C", Paragraph("Hello ABC")))
-//    itShouldQuery1("..B[-1]", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
-//    itShouldQueryEmpty("..B[-4]", Basic)
+    // With negative indices, count from the end
+    itShouldQueryTxt("..B[-3]", Basic -> "Hello AB")
+    itShouldQuery1("..B[-2]", Basic -> Header(3, "C", Paragraph("Hello ABC")))
+    itShouldQuery1("..B[-1]", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
+    itShouldQueryEmpty("..B[-4]", Basic)
   }
 
   describe("When querying a table") {
@@ -142,6 +169,10 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQuery1("!Key[1]", Table -> TableRow("K1", "V1"))
     itShouldQuery1("!Key[2]", Table -> TableRow("K2", "V2"))
     itShouldQueryEmpty("!Key[3]", Table)
+    itShouldQuery1("!Key[-3]", Table -> TableRow("Key", "Value"))
+    itShouldQuery1("!Key[-2]", Table -> TableRow("K1", "V1"))
+    itShouldQuery1("!Key[-1]", Table -> TableRow("K2", "V2"))
+    itShouldQueryEmpty("!Key[-4]", Table)
 
     // TODO: Query cells
     // itShouldQueryTxt("!Key[0][0]", Table ->  "Key")
