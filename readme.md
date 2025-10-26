@@ -119,17 +119,18 @@ Using MarkdQL
 | `Top`                  | Find and return the level one header with the title "Top"                                                                               |
 | `Top[0]`               | Find and return the first child of the level one header with the title "Top"                                                            |
 | `Top[-1]`              | Find and return the last child of the level one header with the title "Top"                                                             |
-| `"..Top"`              | Find and return the level one header with the title "..Top"                                                                             |
-| `/Week .* Failures/`   | ❌ Find and return the level one header that matches the regex, such as `Week 21 Failures`                                               |
+| `"..Top\"[]"`          | Find and return the level one header with the title `..Top"[]`. Use escapes internally to match quotes.                                 |
+| `/Week .* Failures/`   | Find and return the level one header that matches the regex, such as `Week 21 Failures`                                                 |
 | `Monthly..2025-02`     | Find the level one header with the title `Monthly` and return the first subheader named `2025-02` at any level inside                   |
 | `Weekly!To Do`         | Find the level one header with the title `Weekly` and return the `To Do` table that it contains.                                        |
 | `..!Status[12]`        | Find any `Status` table and return the 12th table row (note that row 0 is always the column headers).                                   |
 | `..!Status[-1]`        | Find any `Status` table and return the last table row.                                                                                  |
-| `..!Status[0][3]`      | ❌ Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                   |
+| `..!Status[0][3]`      | Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
 | `..!Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
 | `..Weekly[0]`          | Any header with the title `Weekly` and return the first element it contains.                                                            |
 | `Weekly[code][0]`      | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
 | `Weekly[0][4]`         | Find the top `Weekly` header, go to its first child and return that elements 5th child.                                                 |
+| `..!/.*Status/[1]`     | Find any table with a title ending with `Status` and return the first non-header row.                                                   |
 
 Building
 ------------------------------------------------------------------------------
