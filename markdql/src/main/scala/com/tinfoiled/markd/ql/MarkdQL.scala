@@ -9,34 +9,34 @@ import scala.util.matching.Regex
   * Examples:
   *
   * {{{
-  * | Query                  | Description                                                                                                                             |
-  * |------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-  * | `One.Two.Three[*]`     | Find the level one header with the name `One`, with a subheader named `Two` and a third-level header `Three` and return those contents. |
-  * | `Top`                  | Find and return the level one header with the title "Top"                                                                               |
-  * | `Top[0]`               | Find and return the first child of the level one header with the title "Top"                                                            |
-  * | `Top[-1]`              | Find and return the last child of the level one header with the title "Top"                                                             |
-  * | `"..Top"[]"`          | Find and return the level one header with the title `..Top"[]`. Use escapes internally to match quotes.                                 |
-  * | `/Week .* Failures/`   | Find and return the level one header that matches the regex, such as `Week 21 Failures`                                                 |
-  * | `Monthly..2025-02`     | Find the level one header with the title `Monthly` and return the first subheader named `2025-02` at any level inside                   |
-  * | `Weekly!To Do`         | Find the level one header with the title `Weekly` and return the `To Do` table that it contains.                                        |
-  * | `..!Status[12]`        | Find any `Status` table and return the 12th table row (note that row 0 is always the column headers).                                   |
-  * | `..!Status[-1]`        | Find any `Status` table and return the last table row.                                                                                  |
-  * | `..!Status[0][3]`      | Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
-  * | `..!Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
-  * | `..Weekly[0]`          | Any header with the title `Weekly` and return the first element it contains.                                                            |
-  * | `Weekly[code][0]`      | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
-  * | `Weekly[0][4]`         | Find the top `Weekly` header, go to its first child and return that elements 5th child.                                                 |
-  * | `..!/.*Status/[1]`     | Find any table with a title ending with `Status` and return the first non-header row.                                                   |
+  * | Query                   | Description                                                                                                                             |
+  * |-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+  * | `One.Two.Three[*]`      | Find the level one header with the name `One`, with a subheader named `Two` and a third-level header `Three` and return those contents. |
+  * | `Top`                   | Find and return the level one header with the title "Top"                                                                               |
+  * | `Top[0]`                | Find and return the first child of the level one header with the title "Top"                                                            |
+  * | `Top[-1]`               | Find and return the last child of the level one header with the title "Top"                                                             |
+  * | `"..Top"[]"`           | Find and return the level one header with the title `..Top"[]`. Use escapes internally to match quotes.                                 |
+  * | `/Week .* Failures/`    | Find and return the level one header that matches the regex, such as `Week 21 Failures`                                                 |
+  * | `Monthly..2025-02`      | Find the level one header with the title `Monthly` and return the first subheader named `2025-02` at any level inside                   |
+  * | `Weekly\|To Do`         | Find the level one header with the title `Weekly` and return the `To Do` table that it contains.                                        |
+  * | `..\|Status[12]`        | Find any `Status` table and return the 12th table row (note that row 0 is always the column headers).                                   |
+  * | `..\|Status[-1]`        | Find any `Status` table and return the last table row.                                                                                  |
+  * | `..\|Status[0][3]`      | Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
+  * | `..\|Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
+  * | `..Weekly[0]`           | Any header with the title `Weekly` and return the first element it contains.                                                            |
+  * | `Weekly[code][0]`       | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
+  * | `Weekly[0][4]`          | Find the top `Weekly` header, go to its first child and return that elements 5th child.                                                 |
+  * | `..\|/.*Status/[1]`     | Find any table with a title ending with `Status` and return the first non-header row.                                                   |
   * }}}
   */
 object MarkdQL {
 
   private[this] val QueryRegex: Regex =
     raw"""(?x)^
-              (?<sep>\.{0,2}!?)                                    # Start with a separator of 0-2 periods
+              (?<sep>\.{0,2}\|?)                 # Start with a separator of 0-2 periods
               (?:
-                (?<token>                                          # Either a token and optional index in []
-                    [^/"\[.!][^.!\[]*
+                (?<token>                        # Either a token and optional index in []
+                    [^/"\[.|][^.|\[]*
                     |
                     "(?:[^"\\]|\\.)+"
                     |
@@ -46,7 +46,7 @@ object MarkdQL {
                     |
                     "(?:[^"\\]|\\.)*")])?
                 |
-                \[(?<index>                                        # Or no token and an index in square brackets
+                \[(?<index>                      # Or no token and an index in square brackets
                     [^]"][^]]*
                     |
                     "(?:[^"\\]|\\.)*")]
@@ -80,7 +80,7 @@ object MarkdQL {
     * @param mds
     *   The current set of markdown nodes currently being queried (before the query is applied).
     * @param separator
-    *   The separator before the string token, zero OR two periods followed by an optional !.
+    *   The separator before the string token, zero OR two periods followed by an optional |.
     * @param token
     *   A string token to search for (if any)
     * @param index
@@ -116,13 +116,13 @@ object MarkdQL {
         case ("", _, _, md) if token.isEmpty => md
 
         // Tables
-        case ("!", true, true, Seq(md: MarkdContainer[_])) =>
+        case ("|", true, true, Seq(md: MarkdContainer[_])) =>
           md.collectFirstRecursive { case tbl: Table if tokenRegex.matches(tbl.title) => tbl }.toSeq
-        case ("!", true, false, Seq(md: MarkdContainer[_])) =>
+        case ("|", true, false, Seq(md: MarkdContainer[_])) =>
           md.mds.collectFirst { case tbl: Table if tokenRegex.matches(tbl.title) => tbl }.toSeq
-        case ("!", false, true, Seq(md: MarkdContainer[_])) =>
+        case ("|", false, true, Seq(md: MarkdContainer[_])) =>
           md.collectFirstRecursive { case tbl: Table if tbl.title == token => tbl }.toSeq
-        case ("!", false, false, Seq(md: MarkdContainer[_])) =>
+        case ("|", false, false, Seq(md: MarkdContainer[_])) =>
           md.mds.collectFirst { case tbl: Table if tbl.title == token => tbl }.toSeq
 
         // Headers

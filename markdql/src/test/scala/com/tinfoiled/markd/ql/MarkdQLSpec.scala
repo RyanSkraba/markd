@@ -200,55 +200,55 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
   }
 
   describe("When querying a table") {
-    itShouldQueryTxt("..!To Do[Description,R2]", Basic -> "D2")
-    itShouldQueryEmpty("..!To Do[X,R2]", Basic)
-    itShouldQueryEmpty("..!To Do[Description,X]", Basic)
+    itShouldQueryTxt("..|To Do[Description,R2]", Basic -> "D2")
+    itShouldQueryEmpty("..|To Do[X,R2]", Basic)
+    itShouldQueryEmpty("..|To Do[Description,X]", Basic)
 
     describe("and querying with regex") {
       for (prefix <- Seq("Regex.Tables", "Regex.Tables.", "Regex..", "..")) {
-        itShouldQueryTxt(s"$prefix!/X/[0][1]", Basic -> "Found X")
-        itShouldQueryTxt(s"$prefix!/X./[0][1]", Basic -> "Found XX")
-        itShouldQueryTxt(s"$prefix!/X.*/[0][1]", Basic -> "Found X")
-        itShouldQueryEmpty(s"$prefix!/XZ/[0][1]", Basic)
-        itShouldQueryEmpty(s"$prefix!/ZZ/[0][1]", Basic)
-        itShouldQueryTxt(s"$prefix!/XZ+/[0][1]", Basic -> "Found XZZZZ")
-        itShouldQueryTxt(s"$prefix!/^XZ+$$/[0][1]", Basic -> "Found XZZZZ")
-        itShouldQueryTxt(s"$prefix!/.*ZZ.*/[0][1]", Basic -> "Found XZZZZ")
+        itShouldQueryTxt(s"$prefix|/X/[0][1]", Basic -> "Found X")
+        itShouldQueryTxt(s"$prefix|/X./[0][1]", Basic -> "Found XX")
+        itShouldQueryTxt(s"$prefix|/X.*/[0][1]", Basic -> "Found X")
+        itShouldQueryEmpty(s"$prefix|/XZ/[0][1]", Basic)
+        itShouldQueryEmpty(s"$prefix|/ZZ/[0][1]", Basic)
+        itShouldQueryTxt(s"$prefix|/XZ+/[0][1]", Basic -> "Found XZZZZ")
+        itShouldQueryTxt(s"$prefix|/^XZ+$$/[0][1]", Basic -> "Found XZZZZ")
+        itShouldQueryTxt(s"$prefix|/.*ZZ.*/[0][1]", Basic -> "Found XZZZZ")
       }
     }
 
-    itShouldQuery1("!Key", Table -> markd.Table(2, "Key", "Value", "K1", "V1", "K2", "V2"))
-    itShouldQuery1("!Key[0]", Table -> TableRow("Key", "Value"))
-    itShouldQuery1("!Key[1]", Table -> TableRow("K1", "V1"))
-    itShouldQuery1("!Key[2]", Table -> TableRow("K2", "V2"))
-    itShouldQueryEmpty("!Key[3]", Table)
-    itShouldQuery1("!Key[-3]", Table -> TableRow("Key", "Value"))
-    itShouldQuery1("!Key[-2]", Table -> TableRow("K1", "V1"))
-    itShouldQuery1("!Key[-1]", Table -> TableRow("K2", "V2"))
-    itShouldQueryEmpty("!Key[-4]", Table)
+    itShouldQuery1("|Key", Table -> markd.Table(2, "Key", "Value", "K1", "V1", "K2", "V2"))
+    itShouldQuery1("|Key[0]", Table -> TableRow("Key", "Value"))
+    itShouldQuery1("|Key[1]", Table -> TableRow("K1", "V1"))
+    itShouldQuery1("|Key[2]", Table -> TableRow("K2", "V2"))
+    itShouldQueryEmpty("|Key[3]", Table)
+    itShouldQuery1("|Key[-3]", Table -> TableRow("Key", "Value"))
+    itShouldQuery1("|Key[-2]", Table -> TableRow("K1", "V1"))
+    itShouldQuery1("|Key[-1]", Table -> TableRow("K2", "V2"))
+    itShouldQueryEmpty("|Key[-4]", Table)
 
     describe("when querying cells") {
-      itShouldQueryTxt("!Key[0][0]", Table -> "Key")
-      itShouldQueryTxt("!Key[0][1]", Table -> "Value")
-      itShouldQueryTxt("!Key[0][-2]", Table -> "Key")
-      itShouldQueryTxt("!Key[0][-1]", Table -> "Value")
-      itShouldQueryTxt("!Key[1][0]", Table -> "K1")
-      itShouldQueryTxt("!Key[1][1]", Table -> "V1")
-      itShouldQueryTxt("!Key[1][-2]", Table -> "K1")
-      itShouldQueryTxt("!Key[1][-1]", Table -> "V1")
-      itShouldQueryTxt("!Key[-1][0]", Table -> "K2")
-      itShouldQueryTxt("!Key[-1][1]", Table -> "V2")
-      itShouldQueryTxt("!Key[-1][-2]", Table -> "K2")
-      itShouldQueryTxt("!Key[-1][-1]", Table -> "V2")
+      itShouldQueryTxt("|Key[0][0]", Table -> "Key")
+      itShouldQueryTxt("|Key[0][1]", Table -> "Value")
+      itShouldQueryTxt("|Key[0][-2]", Table -> "Key")
+      itShouldQueryTxt("|Key[0][-1]", Table -> "Value")
+      itShouldQueryTxt("|Key[1][0]", Table -> "K1")
+      itShouldQueryTxt("|Key[1][1]", Table -> "V1")
+      itShouldQueryTxt("|Key[1][-2]", Table -> "K1")
+      itShouldQueryTxt("|Key[1][-1]", Table -> "V1")
+      itShouldQueryTxt("|Key[-1][0]", Table -> "K2")
+      itShouldQueryTxt("|Key[-1][1]", Table -> "V2")
+      itShouldQueryTxt("|Key[-1][-2]", Table -> "K2")
+      itShouldQueryTxt("|Key[-1][-1]", Table -> "V2")
 
       for (row <- -4 to 3; column <- -3 to 2 if row <= -4 || row >= 3 || column <= -4 || column >= 2)
-        itShouldQueryEmpty(s"!Key[$row][$column]", Table)
+        itShouldQueryEmpty(s"|Key[$row][$column]", Table)
     }
 
-    for (tableQuery <- Seq("!Key[Value,K2]", ".!Key[Value,K2]", "..!Key[Value,K2]"))
+    for (tableQuery <- Seq("|Key[Value,K2]", ".|Key[Value,K2]", "..|Key[Value,K2]"))
       itShouldQueryTxt(tableQuery, Table -> "V2")
 
-    for (tableQuery <- Seq("A2.!To Do", "A2!To Do", "A2[*]", "..!To Do"))
+    for (tableQuery <- Seq("A2.|To Do", "A2|To Do", "A2[*]", "..|To Do"))
       it(s"should find a table: '$tableQuery'") {
         Markd(MarkdQL.query(tableQuery, Basic): _*).build().toString shouldBe
           """| To Do | Description |
@@ -263,7 +263,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
 
   describe("When quoting a query token") {
     itShouldQueryTxt("""."Find me [it's \"complicated\"]".Simple[*]""", Basic -> "Found")
-    itShouldQueryTxt("""..!"\"Price\""["In[,\\\]\\\\"]""", Basic -> "Cell")
+    itShouldQueryTxt("""..|"\"Price\""["In[,\\\]\\\\"]""", Basic -> "Cell")
   }
 
   describe("When a query doesn't match") {
@@ -287,8 +287,8 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldParse("\"abc\"" -> ("", "abc", "", ""))
     itShouldParse(""".."abc".rest""" -> ("", "abc", "", ".rest"), recursive = true)
     itShouldParse(""".."ab..c".rest""" -> ("", "ab..c", "", ".rest"), recursive = true)
-    itShouldParse(""".."!abc".rest""" -> ("", "!abc", "", ".rest"), recursive = true)
-    itShouldParse(""".."!ab..c".rest""" -> ("", "!ab..c", "", ".rest"), recursive = true)
+    itShouldParse(""".."|abc".rest""" -> ("", "|abc", "", ".rest"), recursive = true)
+    itShouldParse(""".."|ab..c".rest""" -> ("", "|ab..c", "", ".rest"), recursive = true)
 
     describe("when finding regex matches") {
       itShouldParse("/abc/" -> ("", "abc", "", ""), regex = true)
@@ -306,22 +306,22 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       // itShouldFailToParse("A[*][*]")
       // itShouldFailToParse("..[*]")
       // itShouldFailToParse("..C..[*]")
-      // itShouldFailToParse("..!To Do[rowonly]")
+      // itShouldFailToParse("..|To Do[rowonly]")
     }
 
     describe("when querying tables") {
-      itShouldParse("""!A.rest""" -> ("!", "A", "", ".rest"))
-      itShouldParse(""".!A.rest""" -> ("!", "A", "", ".rest"))
-      itShouldParse("""..!A.rest""" -> ("!", "A", "", ".rest"), recursive = true)
-      itShouldParse("""!"!A!\"\\\x.x[".rest""" -> ("!", """!A!"\x.x[""", "", ".rest"))
-      itShouldParse(""".!"!A!\"\\\x.x[".rest""" -> ("!", """!A!"\x.x[""", "", ".rest"))
-      itShouldParse("""..!"!A!\"\\\x.x[".rest""" -> ("!", """!A!"\x.x[""", "", ".rest"), recursive = true)
+      itShouldParse("""|A.rest""" -> ("|", "A", "", ".rest"))
+      itShouldParse(""".|A.rest""" -> ("|", "A", "", ".rest"))
+      itShouldParse("""..|A.rest""" -> ("|", "A", "", ".rest"), recursive = true)
+      itShouldParse("""|"|A|\"\\\x.x[".rest""" -> ("|", """|A|"\x.x[""", "", ".rest"))
+      itShouldParse(""".|"|A|\"\\\x.x[".rest""" -> ("|", """|A|"\x.x[""", "", ".rest"))
+      itShouldParse("""..|"|A|\"\\\x.x[".rest""" -> ("|", """|A|"\x.x[""", "", ".rest"), recursive = true)
 
       // TODO: What should an empty token to?  Find an empty title?
-      itShouldParse("![*]" -> ("!", "", "*", ""))
-      itShouldFailToParse("!")
-      itShouldFailToParse(".!")
-      itShouldFailToParse("..!")
+      itShouldParse("|[*]" -> ("|", "", "*", ""))
+      itShouldFailToParse("|")
+      itShouldFailToParse(".|")
+      itShouldFailToParse("..|")
     }
   }
 }
