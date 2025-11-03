@@ -48,7 +48,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Dependencies -->
-    <play-json.version>2.10.6</play-json.version>
+    <play-json.version>2.10.8</play-json.version>
     <scala.binary.version>2.13</scala.binary.version>
     <scala.version>2.13.17</scala.version>
     <scalafmt.version>3.8.0</scalafmt.version>
