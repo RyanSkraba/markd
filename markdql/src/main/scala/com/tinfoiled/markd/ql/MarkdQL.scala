@@ -31,6 +31,7 @@ import scala.util.matching.Regex
   */
 object MarkdQL {
 
+  /** Regex for extracting separator, tokens and index from a query. */
   private[this] val QueryRegex: Regex =
     raw"""(?x)^
               (?<sep>\.{0,2}\|?)                 # Start with a separator of 0-2 periods
@@ -53,6 +54,9 @@ object MarkdQL {
               )
               (?<rest>.*)
              $$""".r
+
+  // TODO /** Index that limits the type of children. */
+  //  private[this] val IndexToType = Map("code" -> classOf[Code])
 
   /** @param query
     *   The string to query on.
@@ -140,6 +144,7 @@ object MarkdQL {
 
       // Apply the index to them
       val nextMds = tokenMatches match {
+        case matches if index == "code" => matches.filter(md => classOf[Code].isAssignableFrom(md.getClass))
         case Seq(mdx: MarkdContainer[_]) if index == "*"            => mdx.mds
         case Seq(mdx: MarkdContainer[_]) if intIndex.exists(_ >= 0) => mdx.mds.lift(intIndex.get).toSeq
         case Seq(mdx: MarkdContainer[_]) if intIndex.exists(_ < 0)  => mdx.mds.lift(mdx.mds.length + intIndex.get).toSeq

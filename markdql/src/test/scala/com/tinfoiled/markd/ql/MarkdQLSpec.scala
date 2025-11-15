@@ -65,6 +65,28 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       !|Kx2  | Vx2
       !""".stripMargin('!'))
 
+  /** Markdown with different types */
+  val DifferentTypes: Markd = Markd.parse("""
+      !# A Markdown document with various nodes
+      !paragraph 1
+      !```
+      !code block 1
+      !```
+      !```json
+      !"code block 2"
+      !```
+      !| Table | Column|
+      !|---|---|
+      !| A1 |B1|
+      !|A2|B2|
+      !```json
+      !"code block 3"
+      !```
+      !paragraph 2
+      !## header2 1
+      !## header2 2
+      !""".stripMargin('!'))
+
   /** Successful internal parsing test. This is helpful especially for debugging, but uses the exposed internals in
     * MarkdQL.
     * @param param
@@ -259,6 +281,21 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
             !| R4    | D4          |
             !""".stripMargin('!')
       }
+  }
+
+  describe("When filtering on node types") {
+    // TODO: This is probably not what we really want
+    itShouldQuery(
+      """.[0][*][code]""",
+      DifferentTypes -> Seq(
+        Code("", "code block 1\n"),
+        Code("json", "\"code block 2\"\n"),
+        Code("json", "\"code block 3\"\n")
+      )
+    )
+    // TODO itShouldQuery(""".[0][code]""", ...
+    // TODO itShouldQuery("""..[code]""", ...
+    // TODO itShouldQuery("""..[code`json]""", ...
   }
 
   describe("When quoting a query token") {
