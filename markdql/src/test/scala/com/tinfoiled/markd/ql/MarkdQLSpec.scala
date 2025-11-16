@@ -50,6 +50,19 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       !XZZZZ|Found XZZZZ
       !---|---
       !
+      !# Code blocks
+      !
+      !```json
+      !"one"
+      !```
+      !
+      !```
+      !Hello world!
+      !```
+      !
+      !```bash
+      !ls
+      !```
       !""".stripMargin('!'))
 
   /** Top-level tables */
@@ -219,6 +232,15 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQuery1("..B[-2]", Basic -> Header(3, "C", Paragraph("Hello ABC")))
     itShouldQuery1("..B[-1]", Basic -> Header(3, "C2", Paragraph("Hello ABC2")))
     itShouldQueryEmpty("..B[-4]", Basic)
+  }
+
+  describe("When querying a code block") {
+    itShouldQuery1("Code blocks`bash", Basic -> Code("bash", "ls\n"))
+    itShouldQuery1("Code blocks.`bash", Basic -> Code("bash", "ls\n"))
+    itShouldQuery1("Code blocks..`bash", Basic -> Code("bash", "ls\n"))
+    itShouldQuery1("Code blocks`json", Basic -> Code("json", "\"one\"\n"))
+    itShouldQuery1("Code blocks`/.*sh/", Basic -> Code("bash", "ls\n"))
+    itShouldQuery1("Code blocks`/.*/", Basic -> Code("json", "\"one\"\n"))
   }
 
   describe("When querying a table") {

@@ -25,6 +25,7 @@ import scala.util.matching.Regex
   * | `..\|Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
   * | `..Weekly[0]`           | Any header with the title `Weekly` and return the first element it contains.                                                            |
   * | `Weekly[code][0]`       | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
+  * | `Weekly..`json`        | Find the top `Weekly` header and return the first JSON code block it contains.                                                          |
   * | `Weekly[0][4]`          | Find the top `Weekly` header, go to its first child and return that elements 5th child.                                                 |
   * | `..\|/.*Status/[1]`     | Find any table with a title ending with `Status` and return the first non-header row.                                                   |
   * }}}
@@ -34,10 +35,10 @@ object MarkdQL {
   /** Regex for extracting separator, tokens and index from a query. */
   private[this] val QueryRegex: Regex =
     raw"""(?x)^
-              (?<sep>\.{0,2}\|?)                 # Start with a separator of 0-2 periods
+              (?<sep>\.{0,2}[|`]?)               # Start with a separator of 0-2 periods OR |`
               (?:
                 (?<token>                        # Either a token and optional index in []
-                    [^/"\[.|][^.|\[]*
+                    [^/"\[.|`][^.|`\[]*
                     |
                     "(?:[^"\\]|\\.)+"
                     |
@@ -128,6 +129,24 @@ object MarkdQL {
           md.collectFirstRecursive { case tbl: Table if tbl.title == token => tbl }.toSeq
         case ("|", false, false, Seq(md: MarkdContainer[_])) =>
           md.mds.collectFirst { case tbl: Table if tbl.title == token => tbl }.toSeq
+
+        // Code
+        case ("`", true, true, Seq(md: MarkdContainer[_])) =>
+          md.collectFirstRecursive {
+            case code: Code if tokenRegex.matches(code.code_type) => code
+          }.toSeq
+        case ("`", true, false, Seq(md: MarkdContainer[_])) =>
+          md.mds.collectFirst {
+            case code: Code if tokenRegex.matches(code.code_type) => code
+          }.toSeq
+        case ("`", false, true, Seq(md: MarkdContainer[_])) =>
+          md.collectFirstRecursive {
+            case code: Code if code.code_type == token => code
+          }.toSeq
+        case ("`", false, false, Seq(md: MarkdContainer[_])) =>
+          md.mds.collectFirst {
+            case code: Code if code.code_type == token => code
+          }.toSeq
 
         // Headers
         case ("", true, true, Seq(md: MarkdContainer[_])) =>

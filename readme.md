@@ -129,6 +129,7 @@ Using MarkdQL
 | `..\|Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
 | `..Weekly[0]`           | Any header with the title `Weekly` and return the first element it contains.                                                            |
 | `Weekly[code][0]`       | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
+| `Weekly..\`json`        | Find the top `Weekly` header and return the first JSON code block it contains.                                                          |
 | `Weekly[0][4]`          | Find the top `Weekly` header, go to its first child and return that elements 5th child.                                                 |
 | `..\|/.*Status/[1]`     | Find any table with a title ending with `Status` and return the first non-header row.                                                   |
 
