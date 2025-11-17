@@ -40,7 +40,7 @@ object MarkdQL {
                 (?<token>                        # Either a token and optional index in []
                     [^/"\[.|`][^.|`\[]*
                     |
-                    "(?:[^"\\]|\\.)+"
+                    "(?:[^"\\]|\\.)*"
                     |
                     /(?:[^/\\]|\\.)+/)
                 (?:\[(?<optIndex>
@@ -106,7 +106,7 @@ object MarkdQL {
     /** The query is finished if there are no candidate markdown nodes to be queried, or if the current query string is
       * empty (nothing left to do).
       */
-    lazy val isDone: Boolean = mds.isEmpty || token.isEmpty && index.isEmpty && rest.isEmpty
+    lazy val isDone: Boolean = mds.isEmpty || separator.isEmpty && token.isEmpty && index.isEmpty && rest.isEmpty
 
     /** The token as a regex */
     private lazy val tokenRegex = token.r

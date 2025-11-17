@@ -241,6 +241,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQuery1("Code blocks`json", Basic -> Code("json", "\"one\"\n"))
     itShouldQuery1("Code blocks`/.*sh/", Basic -> Code("bash", "ls\n"))
     itShouldQuery1("Code blocks`/.*/", Basic -> Code("json", "\"one\"\n"))
+    itShouldQuery1("Code blocks`\"\"", Basic -> Code("", "Hello world!\n"))
   }
 
   describe("When querying a table") {
@@ -333,6 +334,8 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
   /** These tests test the internal query parsing as a check for debugging changes */
   describe("Internal MarkdQL query parsing") {
     itShouldParse("" -> ("", "", "", ""))
+    itShouldParse("\"\"" -> ("", "", "", ""))
+    itShouldParse(".\"\"[\"\"]" -> ("", "", "", ""))
     itShouldParse("." -> ("", "", "", ""))
     itShouldParse(".[*]" -> ("", "", "*", ""))
     itShouldParse(".A[*]" -> ("", "A", "*", ""))
@@ -348,6 +351,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldParse(""".."ab..c".rest""" -> ("", "ab..c", "", ".rest"), recursive = true)
     itShouldParse(""".."|abc".rest""" -> ("", "|abc", "", ".rest"), recursive = true)
     itShouldParse(""".."|ab..c".rest""" -> ("", "|ab..c", "", ".rest"), recursive = true)
+    itShouldParse("""..`"abc`"[0].rest""" -> ("`", "abc`", "0", ".rest"), recursive = true)
 
     describe("when finding regex matches") {
       itShouldParse("/abc/" -> ("", "abc", "", ""), regex = true)
