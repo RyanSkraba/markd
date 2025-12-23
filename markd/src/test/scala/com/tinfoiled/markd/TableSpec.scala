@@ -31,6 +31,10 @@ class TableSpec extends AnyFunSpecLike with Matchers {
           !| a3 | b3 |    |
           !| a4 |    |    |
           !""".stripMargin('!')
+      Table(2, "Empty Table").build().toString shouldBe
+        """| Empty Table |   |
+          !|-------------|---|
+          !""".stripMargin('!')
     }
 
     it("should access table cells and rows") {
