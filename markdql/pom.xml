@@ -8,7 +8,7 @@
     <version>0.1.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
-  <artifactId>markdql_2.13</artifactId>
+  <artifactId>markdql_${scala.binary.version}</artifactId>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:markdql_${scala.binary.version}</name>

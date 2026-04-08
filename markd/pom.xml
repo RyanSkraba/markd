@@ -8,7 +8,7 @@
     <version>0.1.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
-  <artifactId>markd_2.13</artifactId>
+  <artifactId>markd_${scala.binary.version}</artifactId>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:markd_${scala.binary.version}</name>
@@ -18,11 +18,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-    </dependency>
-
     <!-- Necessary for prettifying JSON code blocks -->
     <dependency>
       <groupId>com.typesafe.play</groupId>
