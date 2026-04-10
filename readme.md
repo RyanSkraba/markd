@@ -56,12 +56,20 @@ TODO:
 Using Markd
 ------------------------------------------------------------------------------
 
-You can import the library into your project from [maven central](https://central.sonatype.com/artifact/com.tinfoiled/markd_2.13):
+You can import the library into your project from [Maven Central](https://central.sonatype.com/artifact/com.tinfoiled/markd_2.13):
 
 ```xml
+<!-- Scala 2.13 -->
 <dependency>
   <groupId>com.tinfoiled</groupId>
   <artifactId>markd_2.13</artifactId>
+  <version>0.1.0</version>
+</dependency>
+
+<!-- Scala 3 -->
+<dependency>
+  <groupId>com.tinfoiled</groupId>
+  <artifactId>markd_3</artifactId>
   <version>0.1.0</version>
 </dependency>
 ```
@@ -137,6 +145,9 @@ Building
 ------------------------------------------------------------------------------
 
 ```sh
-# Build, format and run all tests
-mvn spotless:apply clean verify
+# Build, format and run all tests (Scala 2.13, default profile)
+mvn -Pscala-2.13 spotless:apply clean verify
+
+# Scala 3
+mvn -Pscala-3 spotless:apply clean verify
 ```
