@@ -63,14 +63,14 @@ You can import the library into your project from [Maven Central](https://centra
 <dependency>
   <groupId>com.tinfoiled</groupId>
   <artifactId>markd_2.13</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 
 <!-- Scala 3 -->
 <dependency>
   <groupId>com.tinfoiled</groupId>
   <artifactId>markd_3</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
