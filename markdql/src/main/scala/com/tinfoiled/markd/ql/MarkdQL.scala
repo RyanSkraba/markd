@@ -32,7 +32,35 @@ import scala.util.matching.Regex
   */
 object MarkdQL {
 
-  /** Regex for extracting separator, tokens and index from a query. */
+  /** Implementation details: we take a query string and apply it to a sequence of MarkdNodes. This regex is the heart
+    * of the process, and we use it to "pop off" a separator, token and index from the query string progressively, and
+    * apply it to the incoming set of nodes.
+    *
+    * A '''separator''' can only be one of:
+    *   - `` or `.` which mean to look for one node in the current set,
+    *   - `..` which means to look for a node recursively in the current set (any of the nodes or their children)
+    *   - `|` which means to look for a Table in the current set
+    *   - `\`` which means to look for a Code block in the current set
+    *
+    * The '''token''' determines what we are looking for, and it can either be:
+    *   - A bare string that doesn't contain any special characters, like `One`.
+    *   - A quoted string that can contain special characters and escaped quotes, like `"[\"Top\"]"`
+    *   - A regex in matching forward slashes, like `/1999-12-../`
+    *
+    * The token is used to look for something in the incoming set of notes.
+    *   - If the '''separator''' is `|` then the token is used to match a Table title (i.e. the text in the upper left
+    *     cell of the table).
+    *   - If the '''separator''' is `\`` then the token is used to match a Code type.
+    *   - Otherwise, it will match a Header with the same text as the token.
+    *
+    * The '''index''' is any value within a pair of square brackets and is used to refine the selected elements:
+    *   - `[0]` returns the first MarkdNode in the sequence
+    *   - `[3]` returns the fourth MarkdNode in the sequence
+    *   - Because of how tables are constructed `[0][0]` returns the title of the table, `[0][1]` returns the next
+    *     column in the table header, etc. `[-1][-2]` would return the second last column of the last row.
+    *   - As a special query on a Table `[Key,rowId]` would look for the column with the title `Key` and the row
+    *     starting with `rowId` and return the cell value at their intersection.
+    */
   private[this] val QueryRegex: Regex =
     raw"""(?x)^
               (?<sep>\.{0,2}[|`]?)               # Start with a separator of 0-2 periods OR |`
