@@ -244,6 +244,16 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     itShouldQuery1("Code blocks`\"\"", Basic -> Code("", "Hello world!\n"))
   }
 
+  describe("When querying a code block contents") {
+    itShouldQuery1("Code blocks`bash[*]", Basic -> Paragraph("ls\n"))
+    itShouldQuery1("Code blocks.`bash[*]", Basic -> Paragraph("ls\n"))
+    itShouldQuery1("Code blocks..`bash[*]", Basic -> Paragraph("ls\n"))
+    itShouldQuery1("Code blocks`json[*]", Basic -> Paragraph("\"one\"\n"))
+    itShouldQuery1("Code blocks`/.*sh/[*]", Basic -> Paragraph("ls\n"))
+    itShouldQuery1("Code blocks`/.*/[*]", Basic -> Paragraph("\"one\"\n"))
+    itShouldQuery1("Code blocks`\"\"[*]", Basic -> Paragraph("Hello world!\n"))
+  }
+
   describe("When querying a table") {
     itShouldQueryTxt("..|To Do[Description,R2]", Basic -> "D2")
     itShouldQueryEmpty("..|To Do[X,R2]", Basic)
@@ -319,6 +329,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
     // TODO itShouldQuery(""".[0][code]""", ...
     // TODO itShouldQuery("""..[code]""", ...
     // TODO itShouldQuery("""..[code`json]""", ...
+    // TODO: just get the code block contents.
   }
 
   describe("When quoting a query token") {
@@ -380,7 +391,7 @@ class MarkdQLSpec extends AnyFunSpecLike with Matchers {
       itShouldParse(""".|"|A|\"\\\x.x[".rest""" -> ("|", """|A|"\x.x[""", "", ".rest"))
       itShouldParse("""..|"|A|\"\\\x.x[".rest""" -> ("|", """|A|"\x.x[""", "", ".rest"), recursive = true)
 
-      // TODO: What should an empty token to?  Find an empty title?
+      // TODO: What should an empty token do?  Find an empty title?
       itShouldParse("|[*]" -> ("|", "", "*", ""))
       itShouldFailToParse("|")
       itShouldFailToParse(".|")

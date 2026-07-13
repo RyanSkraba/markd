@@ -22,12 +22,14 @@ import scala.util.matching.Regex
   * | `..\|Status[12]`        | Find any `Status` table and return the 12th table row (note that row 0 is always the column headers).                                   |
   * | `..\|Status[-1]`        | Find any `Status` table and return the last table row.                                                                                  |
   * | `..\|Status[0][3]`      | Find any `Status` table and return the name of the 4th column (row 0 is the headers, and columns are zero indexed).                     |
-  * | `..\|Status[Key,rowId]` | Find any Status table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**       |
+  * | `..\|Status[Key,rowId]` | Find any `Status` table and return the cell under the column `Key` with the row header `rowId`  **Note that this is column-first!**     |
   * | `..Weekly[0]`           | Any header with the title `Weekly` and return the first element it contains.                                                            |
   * | `Weekly[code][0]`       | ❌ Find the top `Weekly` header and return the first code block it contains.                                                             |
   * | `Weekly..`json`        | Find the top `Weekly` header and return the first JSON code block it contains.                                                          |
   * | `Weekly[0][4]`          | Find the top `Weekly` header, go to its first child and return that elements 5th child.                                                 |
   * | `..\|/.*Status/[1]`     | Find any table with a title ending with `Status` and return the first non-header row.                                                   |
+  * | ``..`bash``             | Find any `bash` code block and return it as a code block                                                                                |
+  * | ``..`[*]``              | Find any code block and return it's contents as a paragraph                                                                             |
   * }}}
   */
 object MarkdQL {
@@ -191,7 +193,8 @@ object MarkdQL {
 
       // Apply the index to them
       val nextMds = tokenMatches match {
-        case matches if index == "code" => matches.filter(md => classOf[Code].isAssignableFrom(md.getClass))
+        case matches if index == "code"      => matches.filter(md => classOf[Code].isAssignableFrom(md.getClass))
+        case Seq(code: Code) if index == "*" => Seq(Paragraph(code.content))
         case Seq(mdx: MarkdContainer[_]) if index == "*"            => mdx.mds
         case Seq(mdx: MarkdContainer[_]) if intIndex.exists(_ >= 0) => mdx.mds.lift(intIndex.get).toSeq
         case Seq(mdx: MarkdContainer[_]) if intIndex.exists(_ < 0)  => mdx.mds.lift(mdx.mds.length + intIndex.get).toSeq
