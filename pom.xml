@@ -344,7 +344,7 @@
       <id>scala-3</id>
       <properties>
         <scala.binary.version>3</scala.binary.version>
-        <scala.version>3.3.7</scala.version>
+        <scala.version>3.8.4</scala.version>
       </properties>
       <dependencies>
         <dependency>
